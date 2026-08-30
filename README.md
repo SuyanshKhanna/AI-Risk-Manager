@@ -576,3 +576,102 @@ message UpiTxnResponse {
 ---
 
 *Last updated: 2026-08-26 | Version 0.1.0-draft*
+
+---
+
+## 18. Hackathon MVP — Scope & Roadmap
+
+### What's Actually Built (Working Demo)
+
+| Component | Status | What It Does |
+|-----------|--------|--------------|
+| **scripts/data_gen/generate_upi_fraud_data.py** | ✅ Working | Generates 50k+ synthetic UPI transactions with 4 fraud patterns (fake screenshots, QR tampering, refund loops, screen-sharing) and ground-truth labels |
+| **services/upi_fraud_detector/detector.py** | ✅ Working | LightGBM classifier on 30+ engineered features (velocity, z-scores, device signals, settlement status). No GPU. Includes probability calibration (isotonic). |
+| **services/upi_fraud_detector/serve.py** | ✅ Working | FastAPI HTTP server on port 8000 with `/score`, `/batch_score`, `/demo`, `/health` endpoints. Returns score, action (ALLOW/CHALLENGE/BLOCK), plain-language reasons, and top-3 SHAP contributors. |
+| **services/upi_fraud_detector/train.py** | ✅ Working | Trains model, evaluates on held-out test split, prints PR-AUC, ROC-AUC, precision/recall/FPR at CHALLENGE/BLOCK thresholds, and false-positive cost. Saves model to disk. |
+
+**Run the demo:**
+```bash
+# 1. Generate data
+python scripts/data_gen/generate_upi_fraud_data.py --n-legitimate 50000 --n-fraud 500 --add-rolling --format parquet
+
+# 2. Train model
+python -m upi_fraud_detector.train --data data/upi_fraud/upi_fraud_training.parquet --output models/upi_fraud_lgbm
+
+# 3. Start API server
+python -m upi_fraud_detector.serve --model models/upi_fraud_lgbm --port 8000
+
+# 4. Test demo
+curl http://localhost:8000/demo
+```
+
+**Expected metrics on held-out test split (50k legit + 500 fraud):**
+- PR-AUC: ~0.88–0.92
+- ROC-AUC: ~0.96–0.98  
+- At BLOCK threshold (0.7): Recall ~0.75, Precision ~0.65, FPR ~0.001
+- False-positive cost: ~₹150 per blocked legitimate transaction
+
+---
+
+### Stubs Kept for Growth Path (Not Implemented)
+
+The following directories exist with minimal placeholder files. Each has a docstring explaining its production purpose and why it's not in the MVP.
+
+| Stub | Location | Production Purpose | Why Not in MVP |
+|------|----------|-------------------|----------------|
+| **STR Estimator** | `libs/str_estimator/` | Causal label recovery for hidden-label bias in real chargeback data (Dhama 2026) | Synthetic data has perfect ground-truth labels; no label bias to correct |
+| **TFT UPI Detector** | `services/upi_fraud_detector/tft_detector.py` | Temporal Fusion Transformer for 30-day sequence modeling | Requires GPU; LightGBM on engineered features sufficient for MVP |
+| **Voice Anti-Spoofing** | `services/voice_auth/` | AASIST-L + x-vector for AI-cloned voice detection in real-time calls | Needs WebRTC audio pipeline, ASVspoof data, GPU |
+| **KYC Liveness** | `services/kyc_liveness/` | CDCN++ + ViViT-L + injection detection for video KYC | Needs WebRTC video, deepfake datasets, GPU, RBI compliance |
+| **Chargeback Responder** | `services/chargeback_responder/` | Auto-assembles evidence packages for dispute win/loss prediction | Needs courier/PG/telco API integrations, STR labels |
+| **Return Risk Scorer** | `services/return_risk_scorer/` | Image forensics (EfficientNet-B3) + tabular risk for AI-doctored returns | Needs generative AI damage photo dataset, video evidence pipeline |
+| **Review Ring Detector** | `services/review_ring_detector/` | GraphSAGE + Leiden on user↔product graph for bot ring detection | Needs behavioral SDK, LLM perplexity, streaming graph infra |
+| **Unified Decision Engine** | `services/decision_engine/` | OPA rule engine combining all 6 vector scores | Only UPI vector built; others are stubs |
+
+**Infra stubs (docker-compose entries kept but disabled):**
+- Kafka, Feast, MLflow, MinIO, Prometheus, Grafana, Loki, Tempo — commented out in `infra/docker-compose.yaml`
+- MVP uses only **Postgres** (for optional persistence) + **local file storage**
+
+---
+
+### Roadmap: From Hackathon Prototype → Production
+
+| Phase | Component | What It Adds | Team | Time | Infra Cost |
+|-------|-----------|--------------|------|------|------------|
+| **1. Hardening (0-4 wks)** | UPI detector hardening | Adversarial testing, drift monitoring, A/B framework, kill-switches | 1 ML + 1 BE | 4 wks | +20% CPU |
+| **2. STR + Chargeback (4-10 wks)** | STR estimator + Chargeback responder | Corrects label bias in real data; auto-evidence for disputes | 2 ML + 1 BE + 1 DE | 6 wks | +Postgres, +Kafka |
+| **3. Voice (10-16 wks)** | Voice anti-spoofing | Real-time vishing detection on support calls | 1 ML (speech) + 1 BE + 1 DE | 6 wks | +GPU (1×A100), +Janus WebRTC |
+| **4. KYC (16-24 wks)** | Deepfake KYC sentinel | Stops synthetic face onboarding fraud | 2 ML (CV) + 1 BE + 1 Sec | 8 wks | +GPU (2×A100), +WebRTC, +Compliance |
+| **5. Returns (24-28 wks)** | Return risk scorer | Catches AI-doctored damage photos | 1 ML (CV) + 1 BE | 4 wks | +GPU, +Courier API |
+| **6. Reviews (28-32 wks)** | Abuse-ring sentinel | Stops coordinated review manipulation | 1 ML (graph) + 1 BE + 1 DE | 4 wks | +Feast, +Kafka, +GPU |
+| **7. Unified Platform (32-40 wks)** | Decision engine + observability | OPA rules, cross-vector correlation, Grafana/Tempo/Loki | 1 MLOps + 1 BE + 1 Sec | 8 wks | +K8s, +Full observability |
+
+**Total to full production: ~9-10 months with 4-5 engineers**
+
+**Estimated annual production cost (after build):**
+- Compute: 8×A100 GPU + 200 vCPU → ~₹1.5 Cr/yr
+- Infra (Kafka, Feast, K8s, observability): ~₹60 L/yr
+- Team (8 FTE): ~₹4.5 Cr/yr
+- **Total: ~₹6.6 Cr/yr** | **ROI target: 15× via loss prevention** (₹100+ Cr/yr saved)
+
+---
+
+### Key Technical Debt to Address
+
+1. **Data quality**: Synthetic → real data pipeline with PII tokenization
+2. **Label bias**: STR estimator for chargeback/refund label correction
+3. **Cold start**: Hierarchical priors for new merchants (<100 txns)
+4. **Drift detection**: PSI/KS monitoring on top-20 features with auto-retrain trigger
+5. **Adversarial robustness**: Quarterly red-teaming + certified defenses
+6. **Regulatory**: DPDP consent artifacts, RBI audit logs, right-to-erasure pipeline
+
+---
+
+### Judge Demo Checklist
+
+- [ ] `python scripts/data_gen/generate_upi_fraud_data.py --add-rolling` completes in <2 min
+- [ ] `python -m upi_fraud_detector.train` achieves PR-AUC > 0.85 on held-out split
+- [ ] `python -m upi_fraud_detector.serve` starts in <5 sec, responds to `/health`
+- [ ] `curl /demo` shows one LEGIT (ALLOW) and one FRAUD (BLOCK) with SHAP reasons
+- [ ] `curl /score` with custom JSON returns action + plain-language reasons + top-3 SHAP
+- [ ] All unit tests pass: `pytest tests/unit -x -q`

@@ -102,8 +102,8 @@ def synthetic_fraud_data():
     Y_obs[noise_mask] = 1 - Y_obs[noise_mask]
     
     return {
-        "X": X,
-        "y": y,
+        "X": pd.DataFrame(X, columns=[f"feat_{i}" for i in range(X.shape[1])]),
+        "y": pd.Series(y, name="label"),
         "Y_obs": Y_obs,
         "R": R,
         "O": O,
