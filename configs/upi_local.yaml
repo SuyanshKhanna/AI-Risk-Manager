@@ -1,0 +1,66 @@
+# Local development configuration for UPI Fraud Detector
+defaults:
+  - base
+
+project:
+  environment: "local"
+
+kafka:
+  bootstrap_servers: "localhost:9092"
+  topics:
+    upi_transactions: "upi.transactions.local"
+    upi_callbacks: "upi.callbacks.local"
+
+feast:
+  registry: "file:///data/feast/registry.db"
+  online_store:
+    host: "localhost"
+    port: 6379
+  offline_store:
+    path: "/data/offline_store"
+
+mlflow:
+  tracking_uri: "http://localhost:5000"
+  experiment_name: "upi-fraud-detector-local"
+
+serving:
+  grpc_port: 50051
+  http_port: 8080
+
+upi_fraud_detector:
+  model:
+    type: "tft"
+    sequence_length: 30
+    hidden_size: 128  # Smaller for local dev
+    num_heads: 4
+    dropout: 0.1
+    learning_rate: 1e-3
+    batch_size: 32
+    epochs: 10  # Fewer epochs for local dev
+  serving:
+    grpc_port: 50051
+    threshold_challenge: 0.3
+    threshold_block: 0.7
+  str_estimator:
+    enabled: true
+    propensity_model: "lightgbm"
+    outcome_model: "lightgbm"
+    calibration: "temperature"
+
+# Training data paths (local)
+data:
+  train_path: "data/upi/train.parquet"
+  val_path: "data/upi/val.parquet"
+  test_path: "data/upi/test.parquet"
+  synthetic_path: "data/upi/synthetic.parquet"
+
+# Feature store paths
+feature_store:
+  entity_path: "data/feast/entities"
+  feature_path: "data/feast/features"
+
+# Logging
+logging:
+  level: "DEBUG"
+  format: "json"
+  output: "stdout"

@@ -1,0 +1,364 @@
+# Base configuration for all services
+project:
+  name: "ai-risk-manager"
+  version: "0.1.0"
+  environment: "local"
+
+# Kafka configuration
+kafka:
+  bootstrap_servers: "localhost:9092"
+  schema_registry_url: "http://localhost:8081"
+  topics:
+    upi_transactions: "upi.transactions"
+    upi_callbacks: "upi.callbacks"
+    voice_calls: "voice.calls"
+    kyc_sessions: "kyc.sessions"
+    chargeback_disputes: "chargeback.disputes"
+    return_requests: "return.requests"
+    review_submissions: "review.submissions"
+    device_events: "device.events"
+    model_scores: "model.scores"
+    feedback_labels: "feedback.labels"
+
+# Feature Store (Feast)
+feast:
+  project: "ai_risk_manager"
+  registry: "s3://feast/registry.db"
+  provider: "local"
+  online_store:
+    type: "redis"
+    host: "localhost"
+    port: 6379
+  offline_store:
+    type: "file"
+    path: "/data/offline_store"
+  entity_key_serialization_version: 2
+
+# MLflow
+mlflow:
+  tracking_uri: "http://localhost:5000"
+  registry_uri: "http://localhost:5000"
+  experiment_name: "fraud-detection"
+  artifact_location: "s3://mlflow/"
+
+# MinIO (S3-compatible)
+minio:
+  endpoint: "localhost:9000"
+  access_key: "minioadmin"
+  secret_key: "minioadmin"
+  secure: false
+  buckets:
+    - "feast"
+    - "mlflow"
+    - "models"
+    - "data"
+    - "logs"
+
+# Redis
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+  password: null
+  max_connections: 50
+
+# PostgreSQL
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "ai_risk_manager"
+  user: "feast"
+  password: "feast"
+  pool_size: 20
+
+# Observability
+observability:
+  prometheus:
+    push_gateway: "http://localhost:9091"
+    scrape_interval: "15s"
+  grafana:
+    url: "http://localhost:3000"
+  loki:
+    url: "http://localhost:3100"
+  tempo:
+    url: "http://localhost:3200"
+  otel:
+    endpoint: "http://localhost:4317"
+    service_name: "ai-risk-manager"
+
+# Security
+security:
+  jwt_secret: "dev-secret-change-in-production"
+  jwt_algorithm: "HS256"
+  jwt_expiry_minutes: 60
+  api_key_header: "X-API-Key"
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+
+# Model serving
+serving:
+  grpc_port: 50051
+  http_port: 8080
+  max_workers: 10
+  request_timeout_ms: 5000
+  batch_size: 32
+  batch_timeout_ms: 10
+
+# Feature store entities
+entities:
+  merchant:
+    join_keys: ["merchant_id"]
+    description: "Merchant entity"
+  customer:
+    join_keys: ["customer_id"]
+    description: "Customer entity"
+  device:
+    join_keys: ["device_fingerprint"]
+    description: "Device entity"
+  upi_handle:
+    join_keys: ["upi_handle"]
+    description: "UPI handle entity"
+  order:
+    join_keys: ["order_id"]
+    description: "Order entity"
+  call_session:
+    join_keys: ["call_session_id"]
+    description: "Call session entity"
+
+# Common feature definitions
+feature_views:
+  merchant_risk_profile:
+    entity: "merchant"
+    ttl: "90d"
+    features:
+      - name: "merchant_category"
+        dtype: "string"
+      - name: "merchant_gmv_30d"
+        dtype: "float64"
+      - name: "merchant_txn_count_30d"
+        dtype: "int64"
+      - name: "merchant_chargeback_rate_30d"
+        dtype: "float64"
+      - name: "merchant_refund_rate_30d"
+        dtype: "float64"
+      - name: "merchant_avg_order_value"
+        dtype: "float64"
+      - name: "merchant_churn_risk_score"
+        dtype: "float64"
+      - name: "merchant_onboarding_date"
+        dtype: "timestamp"
+  
+  customer_behavior:
+    entity: "customer"
+    ttl: "90d"
+    features:
+      - name: "customer_txn_count_30d"
+        dtype: "int64"
+      - name: "customer_avg_txn_amount"
+        dtype: "float64"
+      - name: "customer_return_rate_90d"
+        dtype: "float64"
+      - name: "customer_chargeback_count_90d"
+        dtype: "int64"
+      - name: "customer_device_count_30d"
+        dtype: "int64"
+      - name: "customer_upi_handle_count_30d"
+        dtype: "int64"
+      - name: "customer_first_txn_date"
+        dtype: "timestamp"
+      - name: "customer_risk_tier"
+        dtype: "string"
+  
+  device_fingerprint:
+    entity: "device"
+    ttl: "90d"
+    features:
+      - name: "device_os"
+        dtype: "string"
+      - name: "device_model"
+        dtype: "string"
+      - name: "device_sensor_entropy"
+        dtype: "float64"
+      - name: "device_app_tamper_score"
+        dtype: "float64"
+      - name: "device_emulator_score"
+        dtype: "float64"
+      - name: "device_root_score"
+        dtype: "float64"
+      - name: "device_vpn_probability"
+        dtype: "float64"
+      - name: "device_first_seen"
+        dtype: "timestamp"
+      - name: "device_merchant_count_30d"
+        dtype: "int64"
+  
+  upi_handle_velocity:
+    entity: "upi_handle"
+    ttl: "7d"
+    features:
+      - name: "upi_txn_count_5min"
+        dtype: "int64"
+      - name: "upi_txn_count_1hr"
+        dtype: "int64"
+      - name: "upi_refund_count_1hr"
+        dtype: "int64"
+      - name: "upi_amount_zscore_1hr"
+        dtype: "float64"
+      - name: "upi_unique_merchants_1hr"
+        dtype: "int64"
+      - name: "upi_unique_devices_1hr"
+        dtype: "int64"
+      - name: "upi_first_seen"
+        dtype: "timestamp"
+
+# Vector-specific configs (override in local/prod)
+upi_fraud_detector:
+  model:
+    type: "tft"
+    sequence_length: 30
+    hidden_size: 256
+    num_heads: 8
+    dropout: 0.1
+    learning_rate: 1e-4
+    batch_size: 64
+    epochs: 50
+  serving:
+    grpc_port: 50051
+    threshold_challenge: 0.3
+    threshold_block: 0.7
+  str_estimator:
+    enabled: true
+    propensity_model: "lightgbm"
+    outcome_model: "lightgbm"
+    calibration: "temperature"
+
+voice_auth:
+  model:
+    type: "aasist"
+    variant: "l"
+    sample_rate: 16000
+    segment_length: 3.0
+    embedding_dim: 192
+    learning_rate: 1e-4
+    batch_size: 32
+    epochs: 100
+  serving:
+    grpc_port: 50052
+    threshold_far: 0.001
+    early_exit_confidence: 0.99
+  fusion:
+    xvector_weight: 0.3
+    aasist_weight: 0.7
+
+kyc_liveness:
+  model:
+    liveness:
+      type: "cdcn"
+      variant: "pp"
+    deepfake:
+      type: "vivit"
+      variant: "l"
+      window_seconds: 2
+    injection:
+      type: "svm"
+      features: ["timing_jitter", "virtual_cam_fingerprint"]
+    document:
+      type: "forensic_transformer"
+      ocr_engine: "paddleocr"
+  serving:
+    grpc_port: 50053
+    threshold_apcer: 0.01
+    threshold_bpcer: 0.005
+    max_latency_ms: 2000
+
+chargeback_responder:
+  model:
+    type: "lightgbm"
+    num_features: 200
+    text_embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+    learning_rate: 0.05
+    num_leaves: 127
+    max_depth: 10
+    n_estimators: 500
+  serving:
+    grpc_port: 50054
+    threshold_auto_submit: 0.92
+    threshold_human_review: 0.4
+    evidence_collection_timeout_ms: 300000
+  str_estimator:
+    enabled: true
+    issuer_propensity_model: "lightgbm"
+    reporting_delay_model: "weibull"
+    corruption_model: "beta_binomial"
+
+return_risk_scorer:
+  model:
+    image_forensics:
+      type: "efficientnet"
+      variant: "b3"
+      input_size: 224
+    tabular:
+      type: "lightgbm"
+      num_features: 50
+    fusion:
+      type: "logistic"
+  serving:
+    grpc_port: 50055
+    thresholds:
+      auto_approve: 0.2
+      require_video: 0.6
+      manual_review: 0.85
+
+review_ring_detector:
+  model:
+    graph:
+      type: "graphsage"
+      hidden_dim: 128
+      num_layers: 3
+    linguistic:
+      model: "llama-3-8b"
+      perplexity_threshold: 50
+    community_detection:
+      algorithm: "leiden"
+      resolution: 1.0
+  serving:
+    grpc_port: 50056
+    shadow_ban_threshold: 0.8
+    velocity_limit_per_day: 3
+
+decision_engine:
+  rules:
+    - name: "upi_fraud_block"
+      condition: "upi_score > 0.7"
+      action: "BLOCK"
+      priority: 100
+    - name: "upi_fraud_challenge"
+      condition: "upi_score > 0.3"
+      action: "CHALLENGE"
+      priority: 90
+    - name: "voice_spoof_block"
+      condition: "voice_score > 0.9"
+      action: "BLOCK"
+      priority: 100
+    - name: "kyc_deepfake_block"
+      condition: "kyc_score > 0.8"
+      action: "BLOCK"
+      priority: 100
+    - name: "chargeback_auto_submit"
+      condition: "chargeback_score > 0.92"
+      action: "AUTO_SUBMIT"
+      priority: 80
+    - name: "return_block"
+      condition: "return_score > 0.85"
+      action: "BLOCK"
+      priority: 90
+    - name: "review_shadow_ban"
+      condition: "review_ring_score > 0.8"
+      action: "SHADOW_BAN"
+      priority: 85
+  serving:
+    grpc_port: 50057
+    http_port: 8080
+    default_action: "ALLOW"
+    enable_shap: true

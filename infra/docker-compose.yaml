@@ -1,0 +1,309 @@
+version: '3.8'
+
+services:
+  # Message Queue
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: ai-risk-kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: ["CMD-SHELL", "/etc/confluent/docker/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: ai-risk-zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Schema Registry
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    container_name: ai-risk-schema-registry
+    hostname: schema-registry
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    depends_on:
+      - kafka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/subjects"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Feature Store Online)
+  redis:
+    image: redis:7.2-alpine
+    container_name: ai-risk-redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # PostgreSQL (Metadata, MLflow backend)
+  postgres:
+    image: postgres:16-alpine
+    container_name: ai-risk-postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ai_risk_manager
+      POSTGRES_USER: feast
+      POSTGRES_PASSWORD: feast
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U feast -d ai_risk_manager"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # MinIO (S3-compatible object store for Feast offline store, model artifacts)
+  minio:
+    image: minio/minio:RELEASE.2024-01-16T16-07-38Z
+    container_name: ai-risk-minio
+    hostname: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MLflow Tracking Server
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.0
+    container_name: ai-risk-mlflow
+    hostname: mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://feast:feast@postgres:5432/ai_risk_manager
+      MLFLOW_DEFAULT_ARTIFACT_ROOT: s3://mlflow/
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      MLFLOW_S3_IGNORE_TLS: "true"
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri postgresql://feast:feast@postgres:5432/ai_risk_manager
+      --default-artifact-root s3://mlflow/
+      --artifacts-destination s3://mlflow/
+    depends_on:
+      - postgres
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Feast Feature Server
+  feast:
+    image: feastdev/feast:0.40.0
+    container_name: ai-risk-feast
+    hostname: feast
+    ports:
+      - "6566:6566"
+    environment:
+      FEAST_CORE_URL: feast:6565
+      FEAST_SERVING_URL: feast:6566
+      FEAST_REGISTRY: s3://feast/registry.db
+      FEAST_PROJECT: ai_risk_manager
+      FEAST_PROVIDER: local
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      FEAST_S3_ENDPOINT_URL: http://minio:9000
+      FEAST_S3_IGNORE_TLS: "true"
+      FEAST_ONLINE_STORE_TYPE: redis
+      FEAST_REDIS_HOST: redis
+      FEAST_REDIS_PORT: 6379
+      FEAST_OFFLINE_STORE_TYPE: file
+      FEAST_FILE_PATH: /data/offline_store
+    volumes:
+      - feast-data:/data
+    depends_on:
+      - redis
+      - minio
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=localhost:6566"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: ai-risk-prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: ai-risk-grafana
+    hostname: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Loki (Logs)
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: ai-risk-loki
+    hostname: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Tempo (Traces)
+  tempo:
+    image: grafana/tempo:2.4.0
+    container_name: ai-risk-tempo
+    hostname: tempo
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./tempo/tempo-config.yaml:/etc/tempo.yaml
+      - tempo-data:/tempo
+    command: -config.file=/etc/tempo.yaml
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3200/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Promtail (Log shipper)
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: ai-risk-promtail
+    hostname: promtail
+    volumes:
+      - ./promtail/promtail-config.yaml:/etc/promtail/config.yml
+      - /var/log:/var/log
+      - ./logs:/logs
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
+  # Alertmanager
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: ai-risk-alertmanager
+    hostname: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+
+volumes:
+  redis-data:
+  postgres-data:
+  minio-data:
+  feast-data:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+  tempo-data:
+  alertmanager-data:
+
+networks:
+  default:
+    name: ai-risk-network
