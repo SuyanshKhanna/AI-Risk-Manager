@@ -1,5 +1,5 @@
 """UPI Fraud Detector — Hackathon MVP."""
 
-from .detector import UpiFraudDetector, ModelConfig
+from .detector import ModelConfig, UpiFraudDetector
 
-__all__ = ["UpiFraudDetector", "ModelConfig"]
+__all__ = ["ModelConfig", "UpiFraudDetector"]

@@ -27,11 +27,11 @@ To enable in production:
 
 class ChargebackResponderService:
     """STUB: Chargeback evidence auto-responder."""
-    
+
     def __init__(self, config=None):
         self.config = config
         self.is_fitted = False
-    
+
     async def handle_dispute(self, dispute_id: str, txn_id: str) -> dict:
         """STUB: Returns mock decision."""
         return {
@@ -41,7 +41,7 @@ class ChargebackResponderService:
             "evidence_package": {},
             "auto_submit": False,
         }
-    
+
     def train(self, *args, **kwargs):
         print("[Chargeback] Skipped — requires external API integrations + STR")
         self.is_fitted = True

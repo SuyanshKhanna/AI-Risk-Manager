@@ -1,9 +1,9 @@
 """Feature store definitions using Feast."""
 
-from feast import Entity, FeatureView, Field, FileSource, RedisSource
-from feast.types import Float64, Int64, String, UnixTimestamp
 from datetime import timedelta
 
+from feast import Entity, FeatureView, Field, FileSource, RedisSource
+from feast.types import Float64, Int64, String, UnixTimestamp
 
 # Entities
 merchant = Entity(
@@ -273,8 +273,6 @@ call_session_features = FeatureView(
 )
 
 # Derived/On-demand feature views (computed at request time)
-from feast import OnDemandFeatureView
-from feast.feature_view import FeatureView as FV
 
 # These would be defined with @on_demand_feature_view decorator
 # in the actual implementation file

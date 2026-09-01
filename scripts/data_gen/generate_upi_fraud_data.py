@@ -13,13 +13,13 @@ Output: CSV/Parquet with engineered features + ground-truth label column.
 """
 
 import argparse
-import numpy as np
-import pandas as pd
-from pathlib import Path
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Tuple
 import hashlib
 import json
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 # Reproducibility
 np.random.seed(42)
@@ -93,11 +93,11 @@ LEGITIMATE_BASE = {
 # HELPER FUNCTIONS
 # ──────────────────────────────────────────────────────────────────────
 
-def sample_range(rng: Tuple[float, float]) -> float:
+def sample_range(rng: tuple[float, float]) -> float:
     """Uniform sample from range."""
     return np.random.uniform(rng[0], rng[1])
 
-def sample_int_range(rng: Tuple[int, int]) -> int:
+def sample_int_range(rng: tuple[int, int]) -> int:
     """Uniform integer sample from range."""
     return np.random.randint(rng[0], rng[1] + 1)
 
@@ -105,7 +105,7 @@ def hash_id(prefix: str, idx: int) -> str:
     """Deterministic short hash ID."""
     return f"{prefix}_{hashlib.md5(f'{prefix}{idx}'.encode()).hexdigest()[:8]}"
 
-def pick_hour(pattern_hour_range: Tuple[int, int]) -> int:
+def pick_hour(pattern_hour_range: tuple[int, int]) -> int:
     """Pick hour, handling wrap-around (e.g., 22-6)."""
     start, end = pattern_hour_range
     if start <= end:
@@ -117,41 +117,41 @@ def pick_hour(pattern_hour_range: Tuple[int, int]) -> int:
 # CORE GENERATOR
 # ──────────────────────────────────────────────────────────────────────
 
-def generate_legitimate_transaction(txn_id: int, base_time: datetime) -> Dict:
+def generate_legitimate_transaction(txn_id: int, base_time: datetime) -> dict:
     """Generate a legitimate transaction with realistic feature values."""
     # Base time with some jitter
     txn_time = base_time + timedelta(minutes=np.random.exponential(10))
-    
+
     # Legitimate users have consistent patterns
     merchant_id = hash_id("M", np.random.randint(1, 200))
     customer_id = hash_id("C", np.random.randint(1, 5000))
     device_fp = hash_id("dev", np.random.randint(1, 3000))
     upi_handle = hash_id("upi", np.random.randint(1, 4000))
-    
+
     # Amount follows log-normal (typical UPI distribution)
     amount = int(np.random.lognormal(8.5, 0.7))
-    
+
     # Rolling stats (simulated)
     merchant_avg = np.random.lognormal(8.5, 0.5)
     merchant_std = merchant_avg * 0.4
     amount_zscore = max(-3, min(3, (amount - merchant_avg) / max(merchant_std, 1)))
-    
+
     # Velocity features
     velocity_5min = np.random.poisson(0.5)
     velocity_1hr = np.random.poisson(3)
     refund_count_1hr = np.random.poisson(0.02)
     refund_rate = 0.0 if velocity_1hr == 0 else refund_count_1hr / velocity_1hr
-    
+
     # Device features
     device_emulator_score = np.random.beta(1, 50)
     device_root_score = np.random.beta(1, 30)
     device_fraud_reports_30d = np.random.poisson(0.01)
     vpn_probability = np.random.beta(1, 20)
-    
+
     # Time features
     hour = txn_time.hour
     is_night = 1 if hour >= 22 or hour <= 6 else 0
-    
+
     return {
         "txn_id": f"TXN{txn_id:08d}",
         "timestamp": txn_time.isoformat(),
@@ -185,19 +185,19 @@ def generate_legitimate_transaction(txn_id: int, base_time: datetime) -> Dict:
         "fraud_type": "legitimate",
     }
 
-def generate_fraud_transaction(txn_id: int, base_time: datetime, pattern_name: str) -> Dict:
+def generate_fraud_transaction(txn_id: int, base_time: datetime, pattern_name: str) -> dict:
     """Generate a fraudulent transaction following a specific pattern."""
     pattern = FRAUD_PATTERNS[pattern_name]
     sig = pattern["feature_signature"]
-    
+
     txn_time = base_time + timedelta(minutes=np.random.exponential(5))
-    
+
     # Fraud often uses newer/throwaway identities
     merchant_id = hash_id("M", np.random.randint(1, 200))
     customer_id = hash_id("C", np.random.randint(1, 5000))
     device_fp = hash_id("dev", np.random.randint(1, 3000))
     upi_handle = hash_id("upi", np.random.randint(1, 4000))
-    
+
     # Amount - often larger for fraud
     base_amount = int(np.random.lognormal(8.5, 0.7))
     if "amount_zscore" in sig:
@@ -205,10 +205,10 @@ def generate_fraud_transaction(txn_id: int, base_time: datetime, pattern_name: s
         amount = int(base_amount * (1 + z * 0.5))
     else:
         amount = base_amount
-    
+
     merchant_avg = np.random.lognormal(8.5, 0.5)
     amount_zscore = max(-3, min(3, (amount - merchant_avg) / max(merchant_avg * 0.4, 1)))
-    
+
     # Build feature dict starting from legitimate base
     features = {
         "txn_id": f"TXN{txn_id:08d}",
@@ -242,7 +242,7 @@ def generate_fraud_transaction(txn_id: int, base_time: datetime, pattern_name: s
         "is_fraud": 1,
         "fraud_type": pattern_name,
     }
-    
+
     # Override with pattern-specific values
     for key, val in sig.items():
         if isinstance(val, tuple):
@@ -254,7 +254,7 @@ def generate_fraud_transaction(txn_id: int, base_time: datetime, pattern_name: s
                 features[key] = round(sample_range(val), 4)
         else:
             features[key] = val
-    
+
     # Derived features
     if "velocity_5min" in sig:
         features["velocity_5min"] = sample_int_range(sig["velocity_5min"])
@@ -267,7 +267,7 @@ def generate_fraud_transaction(txn_id: int, base_time: datetime, pattern_name: s
         features["same_device_refunds"] = sample_int_range(sig["same_device_refunds"])
     if "session_duration_sec" in sig:
         features["session_duration_sec"] = sample_int_range(sig["session_duration_sec"])
-    
+
     return features
 
 def generate_dataset(n_legitimate: int = 50000, n_fraud: int = 500, fraud_ratio: float = None) -> pd.DataFrame:
@@ -281,75 +281,93 @@ def generate_dataset(n_legitimate: int = 50000, n_fraud: int = 500, fraud_ratio:
     """
     if fraud_ratio is not None:
         n_fraud = int(n_legitimate * fraud_ratio / (1 - fraud_ratio))
-    
+
     print(f"Generating {n_legitimate:,} legitimate + {n_fraud:,} fraud transactions")
     print(f"Fraud ratio: {n_fraud/(n_legitimate+n_fraud)*100:.3f}%")
-    
+
     base_time = datetime.now(timezone.utc) - timedelta(days=90)
     records = []
-    
+
     # Generate legitimate transactions
     for i in range(n_legitimate):
         records.append(generate_legitimate_transaction(i, base_time))
-    
+
     # Generate fraud transactions distributed across patterns
     fraud_weights = {k: v["weight"] for k, v in FRAUD_PATTERNS.items()}
     pattern_names = list(fraud_weights.keys())
     pattern_probs = list(fraud_weights.values())
-    
+
     for i in range(n_fraud):
         pattern = np.random.choice(pattern_names, p=pattern_probs)
         records.append(generate_fraud_transaction(n_legitimate + i, base_time, pattern))
-    
+
     df = pd.DataFrame(records)
     df = df.sort_values("timestamp").reset_index(drop=True)
-    
+
     return df
 
 # ──────────────────────────────────────────────────────────────────────
 # FEATURE ENGINEERING (for model training)
 # ──────────────────────────────────────────────────────────────────────
 
-def add_rolling_features(df: pd.DataFrame, windows: List[int] = [5, 60, 1440]) -> pd.DataFrame:
+def add_rolling_features(df: pd.DataFrame, windows: list[int] = [5, 60]) -> pd.DataFrame:
     """Add rolling window features per merchant/device/UPI handle.
-    
-    Note: For large datasets, this is a placeholder. In production, use a more efficient
-    streaming approach with a proper feature store (Feast).
+
+    Uses the real, leakage-free two-pointer sweep implemented in
+    rolling_features.py.  Each row's count/sum includes only transactions
+    that STRICTLY precede that row's timestamp for the same entity.
     """
-    # Placeholder - in production, use Feast or a streaming feature store
-    # For hackathon MVP, we skip expensive rolling computations
-    for entity_col in ["merchant_id", "device_fingerprint", "upi_handle"]:
-        for window_min in windows:
-            window_str = f"{window_min}min"
-            df[f"{entity_col}_txn_count_{window_str}"] = 0
-            df[f"{entity_col}_amount_sum_{window_min}min"] = 0
-    return df
+    from scripts.data_gen.rolling_features import compute_rolling_features
+    return compute_rolling_features(
+        df,
+        entity_cols=["merchant_id", "device_fingerprint", "upi_handle"],
+        windows_min=windows,
+        include_amount_sum=True,
+    )
+
 
 def add_deviation_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Add deviation-from-baseline features."""
+    """Add deviation-from-baseline features.
+
+    Uses EXPANDING (cumulative) stats per entity so that at row i, only
+    the first i-1 rows for that entity contribute — no future leakage.
+    The df must already be sorted by timestamp (add_rolling_features ensures this).
+    """
     df = df.copy()
-    
-    # Merchant-level rolling stats
-    merchant_stats = df.groupby("merchant_id")["amount_paise"].agg(["mean", "std"]).reset_index()
-    merchant_stats.columns = ["merchant_id", "merchant_mean_amt", "merchant_std_amt"]
-    merchant_stats["merchant_std_amt"] = merchant_stats["merchant_std_amt"].replace(0, 1)
-    df = df.merge(merchant_stats, on="merchant_id", how="left")
-    
-    # Z-score vs merchant
-    df["amount_zscore_merchant"] = (df["amount_paise"] - df["merchant_mean_amt"]) / df["merchant_std_amt"]
-    df["amount_zscore_merchant"] = df["amount_zscore_merchant"].clip(-5, 5)
-    
-    # Customer-level stats
-    cust_stats = df.groupby("customer_id")["amount_paise"].agg(["mean", "std"]).reset_index()
-    cust_stats.columns = ["customer_id", "cust_mean_amt", "cust_std_amt"]
-    cust_stats["cust_std_amt"] = cust_stats["cust_std_amt"].replace(0, 1)
-    df = df.merge(cust_stats, on="customer_id", how="left")
-    df["amount_zscore_cust"] = (df["amount_paise"] - df["cust_mean_amt"]) / df["cust_std_amt"]
-    df["amount_zscore_cust"] = df["amount_zscore_cust"].clip(-5, 5)
-    
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+    df = df.sort_values("timestamp").reset_index(drop=True)
+
+    # ── Merchant expanding mean / std (prior transactions only) ──────────
+    # shift(1) means the current row sees the cumulative stats of all PRIOR
+    # rows for that entity, not including itself.
+    grp_m = df.groupby("merchant_id")["amount_paise"]
+    df["merchant_mean_amt"] = grp_m.transform(
+        lambda s: s.expanding().mean().shift(1)
+    ).fillna(df["amount_paise"])  # first txn for entity: use own amount as baseline
+    df["merchant_std_amt"] = grp_m.transform(
+        lambda s: s.expanding().std().shift(1)
+    ).fillna(1.0).replace(0, 1.0)
+
+    df["amount_zscore_merchant"] = (
+        (df["amount_paise"] - df["merchant_mean_amt"]) / df["merchant_std_amt"]
+    ).clip(-5, 5)
+
+    # ── Customer expanding mean / std ────────────────────────────────────
+    grp_c = df.groupby("customer_id")["amount_paise"]
+    df["cust_mean_amt"] = grp_c.transform(
+        lambda s: s.expanding().mean().shift(1)
+    ).fillna(df["amount_paise"])
+    df["cust_std_amt"] = grp_c.transform(
+        lambda s: s.expanding().std().shift(1)
+    ).fillna(1.0).replace(0, 1.0)
+
+    df["amount_zscore_cust"] = (
+        (df["amount_paise"] - df["cust_mean_amt"]) / df["cust_std_amt"]
+    ).clip(-5, 5)
+
     return df
 
-def prepare_training_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
+def prepare_training_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     """Select and prepare final feature columns for training."""
     # Core engineered features
     feature_cols = [
@@ -384,13 +402,13 @@ def prepare_training_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]
         "upi_handle_txn_count_5min",
         "upi_handle_txn_count_1hr",
     ]
-    
+
     # Filter to existing columns
     feature_cols = [c for c in feature_cols if c in df.columns]
-    
+
     X = df[feature_cols].fillna(0)
     y = df["is_fraud"].astype(int)
-    
+
     return X, y, feature_cols
 
 # ──────────────────────────────────────────────────────────────────────
@@ -404,67 +422,74 @@ def main():
     parser.add_argument("--fraud-ratio", type=float, default=None, help="Target fraud ratio (overrides n-fraud)")
     parser.add_argument("--output-dir", type=str, default="data/upi_fraud", help="Output directory")
     parser.add_argument("--format", choices=["csv", "parquet", "both"], default="both")
-    parser.add_argument("--add-rolling", action="store_true", help="Add rolling window features")
+    parser.add_argument(
+        "--no-rolling", action="store_true",
+        help="Skip real rolling window features (reverts to placeholder zeros)"
+    )
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     args = parser.parse_args()
-    
+
     np.random.seed(args.seed)
-    
+
     output_path = Path(args.output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Generate base dataset
     df = generate_dataset(
         n_legitimate=args.n_legitimate,
         n_fraud=args.n_fraud,
         fraud_ratio=args.fraud_ratio
     )
-    
-    # Add rolling features if requested
-    if args.add_rolling:
-        print("Adding rolling window features...")
-        df = add_rolling_features(df)
+
+    # Rolling features — always ON unless explicitly disabled
+    if not getattr(args, "no_rolling", False):
+        print("Computing real (leakage-free) rolling window features...")
+        df = add_rolling_features(df, windows=[5, 60])
+        print("Computing expanding deviation features (no future leakage)...")
         df = add_deviation_features(df)
-    
+    else:
+        print("WARNING: --no-rolling set; rolling features will be placeholder zeros.")
+
+
     # Save raw dataset
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     base_name = f"upi_fraud_{timestamp}"
-    
+
     if args.format in ["csv", "both"]:
         csv_path = output_path / f"{base_name}.csv"
         df.to_csv(csv_path, index=False)
         print(f"Saved CSV: {csv_path}")
-    
+
     if args.format in ["parquet", "both"]:
         pq_path = output_path / f"{base_name}.parquet"
         df.to_parquet(pq_path, index=False)
         print(f"Saved Parquet: {pq_path}")
-    
+
     # Save feature matrix for training
     X, y, feature_cols = prepare_training_features(df)
     train_df = pd.concat([X, y.rename("label")], axis=1)
-    
+
     if args.format in ["csv", "both"]:
         train_csv = output_path / f"{base_name}_training.csv"
         train_df.to_csv(train_csv, index=False)
         print(f"Saved training CSV: {train_csv}")
-    
+
     if args.format in ["parquet", "both"]:
         train_pq = output_path / f"{base_name}_training.parquet"
         train_df.to_parquet(train_pq, index=False)
         print(f"Saved training Parquet: {train_pq}")
-    
+
     # Save feature column list
     with open(output_path / f"{base_name}_features.json", "w") as f:
         json.dump({"features": feature_cols, "target": "label"}, f, indent=2)
-    
+
     # Print summary stats
     print("\n=== Dataset Summary ===")
     print(f"Total transactions: {len(df):,}")
     print(f"Fraud rate: {df['is_fraud'].mean()*100:.3f}%")
     print(f"Fraud types:\n{df[df['is_fraud']==1]['fraud_type'].value_counts()}")
     print(f"\nFeature columns ({len(feature_cols)}): {feature_cols}")
-    
+
     # Class balance check
     print(f"\nClass balance - Legitimate: {(df['is_fraud']==0).sum():,}, Fraud: {(df['is_fraud']==1).sum():,}")
 

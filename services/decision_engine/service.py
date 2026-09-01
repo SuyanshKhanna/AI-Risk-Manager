@@ -24,7 +24,7 @@ from services.upi_fraud_detector.detector import DecisionEngine as UpiDecisionEn
 
 class UnifiedDecisionEngine:
     """STUB: Unified decision engine for all fraud vectors."""
-    
+
     def __init__(self, config=None):
         self.config = config
         self.vector_engines = {
@@ -35,7 +35,7 @@ class UnifiedDecisionEngine:
             "return": None,
             "review": None,
         }
-    
+
     async def decide(self, merchant_id: str, vector_scores: dict, context: dict) -> dict:
         """STUB: For MVP, delegates to UPI detector's inline engine."""
         # In production: fetch scores from all 6 services, apply OPA rules
@@ -45,7 +45,7 @@ class UnifiedDecisionEngine:
             "applied_rules": ["unified_engine_not_implemented"],
             "vector_contributions": vector_scores,
         }
-    
+
     def load_vector_engines(self):
         """STUB: Would initialize gRPC clients to each vector service."""
         pass
@@ -54,4 +54,4 @@ class UnifiedDecisionEngine:
 # For MVP, re-export UPI's decision engine as the primary one
 DecisionEngine = UpiDecisionEngine
 
-__all__ = ["UnifiedDecisionEngine", "DecisionEngine"]
+__all__ = ["DecisionEngine", "UnifiedDecisionEngine"]

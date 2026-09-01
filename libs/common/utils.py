@@ -1,17 +1,17 @@
 """Common utilities."""
 
-import time
-import uuid
 import hashlib
 import json
-import logging
-from typing import Any, Dict, Optional, Callable
-from functools import wraps
+import time
+import uuid
+from collections.abc import Callable
 from contextlib import contextmanager
 from datetime import datetime, timezone
+from functools import wraps
+from typing import Any
 
 import structlog
-from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry
+from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
 
 # Structured logging
 logger = structlog.get_logger(__name__)
@@ -42,7 +42,7 @@ def current_timestamp_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def parse_timestamp(ts: Any) -> Optional[datetime]:
+def parse_timestamp(ts: Any) -> datetime | None:
     """Parse various timestamp formats to datetime."""
     if ts is None:
         return None
@@ -136,16 +136,16 @@ def retry_with_backoff(
 
 class MetricsTimer:
     """Context manager for timing operations with Prometheus metrics."""
-    
-    def __init__(self, histogram: Histogram, labels: Optional[Dict[str, str]] = None):
+
+    def __init__(self, histogram: Histogram, labels: dict[str, str] | None = None):
         self.histogram = histogram
         self.labels = labels or {}
         self.start_time = 0
-    
+
     def __enter__(self):
         self.start_time = time.perf_counter()
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed_ms = (time.perf_counter() - self.start_time) * 1000
         if self.labels:

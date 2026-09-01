@@ -26,11 +26,11 @@ To enable in production:
 
 class ReviewRingDetectorService:
     """STUB: Review ring detector."""
-    
+
     def __init__(self, config=None):
         self.config = config
         self.is_fitted = False
-    
+
     async def check_review(self, review_id: str, review_text: str, user_id: str) -> dict:
         """STUB: Returns mock decision."""
         return {
@@ -41,7 +41,7 @@ class ReviewRingDetectorService:
             "cluster_id": None,
             "is_purchase_verified": True,
         }
-    
+
     def train(self, *args, **kwargs):
         print("[ReviewRing] Skipped — requires behavioral SDK + graph pipeline")
         self.is_fitted = True

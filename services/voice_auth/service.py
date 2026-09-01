@@ -21,11 +21,11 @@ To enable in production:
 
 class VoiceAuthService:
     """STUB: Voice anti-spoofing detector."""
-    
+
     def __init__(self, config=None):
         self.config = config
         self.is_fitted = False
-    
+
     async def score_call(self, audio_b64: str, caller_id: str = None) -> dict:
         """STUB: Returns mock decision."""
         return {
@@ -35,7 +35,7 @@ class VoiceAuthService:
             "liveness_score": 0.99,
             "voiceprint_match": 0.95,
         }
-    
+
     def train(self, *args, **kwargs):
         print("[VoiceAuth] Skipped — requires audio pipeline + GPU")
         self.is_fitted = True

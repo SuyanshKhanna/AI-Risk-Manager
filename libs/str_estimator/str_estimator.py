@@ -25,7 +25,6 @@ To enable in production:
   4. Requires ~3-4 weeks of ML engineering + domain expertise
 """
 
-from typing import Dict, Any, Optional
 import numpy as np
 
 
@@ -49,21 +48,21 @@ class STREstimator:
     
     For hackathon: NOT USED — synthetic data has perfect labels.
     """
-    
+
     def __init__(self, config: STRConfig = None):
         self.config = config or STRConfig()
         self.is_fitted = False
-    
+
     def fit(self, X, y, R=None, O=None, D=None, groups=None):
         """STUB: In production, fits STR estimator. Here, does nothing."""
         print("[STR] Skipped — synthetic data has ground-truth labels")
         self.is_fitted = True
         return self
-    
+
     def predict_pseudo_labels(self, X):
         """STUB: Returns model predictions as pseudo-labels."""
         return np.zeros(len(X))
-    
+
     def get_training_weights(self):
         """STUB: Returns uniform weights."""
         return np.ones(100)

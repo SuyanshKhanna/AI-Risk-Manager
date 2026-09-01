@@ -1,33 +1,38 @@
 """Metrics and observability utilities."""
 
 import time
-from typing import Dict, Any, Optional, Callable
-from functools import wraps
+from collections.abc import Callable
 from contextlib import contextmanager
-from datetime import datetime
+from functools import wraps
+from typing import Any
 
 import structlog
-from prometheus_client import (
-    Counter, Histogram, Gauge, Summary,
-    CollectorRegistry, generate_latest, CONTENT_TYPE_LATEST
-)
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.grpc import GrpcInstrumentorClient, GrpcInstrumentorServer
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.redis import RedisInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    Summary,
+    generate_latest,
+)
 
 from .utils import get_prometheus_registry
 
 logger = structlog.get_logger(__name__)
 
 # Global registry
-_registry: Optional[CollectorRegistry] = None
-_tracer_provider: Optional[TracerProvider] = None
+_registry: CollectorRegistry | None = None
+_tracer_provider: TracerProvider | None = None
 
 
 def init_metrics(service_name: str, registry: CollectorRegistry = None) -> CollectorRegistry:
@@ -40,24 +45,24 @@ def init_metrics(service_name: str, registry: CollectorRegistry = None) -> Colle
 def init_tracing(service_name: str, otlp_endpoint: str = "http://localhost:4317") -> TracerProvider:
     """Initialize OpenTelemetry tracing."""
     global _tracer_provider
-    
+
     resource = Resource(attributes={SERVICE_NAME: service_name})
     _tracer_provider = TracerProvider(resource=resource)
-    
+
     # OTLP exporter
     otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
     _tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-    
+
     # Set as global tracer provider
     trace.set_tracer_provider(_tracer_provider)
-    
+
     # Auto-instrumentation
     FastAPIInstrumentor.instrument()
     GrpcInstrumentorClient().instrument()
     GrpcInstrumentorServer().instrument()
     RequestsInstrumentor().instrument()
     RedisInstrumentor().instrument()
-    
+
     return _tracer_provider
 
 
@@ -97,14 +102,14 @@ def create_summary(name: str, description: str, labels: list = None) -> Summary:
 # Standard metrics for all services
 class ServiceMetrics:
     """Standard metrics for a service."""
-    
+
     def __init__(self, service_name: str):
         self.service_name = service_name
         self._init_metrics()
-    
+
     def _init_metrics(self):
         prefix = f"{self.service_name}_"
-        
+
         # Request metrics
         self.requests_total = create_counter(
             f"{prefix}requests_total",
@@ -117,7 +122,7 @@ class ServiceMetrics:
             ["method", "endpoint"],
             buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
         )
-        
+
         # gRPC metrics
         self.grpc_requests_total = create_counter(
             f"{prefix}grpc_requests_total",
@@ -130,7 +135,7 @@ class ServiceMetrics:
             ["method"],
             buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0]
         )
-        
+
         # Model metrics
         self.model_inference_latency = create_histogram(
             f"{prefix}model_inference_latency_seconds",
@@ -149,7 +154,7 @@ class ServiceMetrics:
             "Total model predictions",
             ["vector", "action"]
         )
-        
+
         # Feature store metrics
         self.feature_store_latency = create_histogram(
             f"{prefix}feature_store_latency_seconds",
@@ -162,7 +167,7 @@ class ServiceMetrics:
             "Feature store errors",
             ["operation", "error_type"]
         )
-        
+
         # Cache metrics
         self.cache_hits = create_counter(
             f"{prefix}cache_hits_total",
@@ -179,7 +184,7 @@ class ServiceMetrics:
             "Cache hit rate",
             ["cache_name"]
         )
-        
+
         # Queue metrics
         self.queue_size = create_gauge(
             f"{prefix}queue_size",
@@ -192,7 +197,7 @@ class ServiceMetrics:
             ["queue_name"],
             buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0]
         )
-        
+
         # Drift metrics
         self.drift_detected = create_gauge(
             f"{prefix}drift_detected",
@@ -204,7 +209,7 @@ class ServiceMetrics:
             "Drift score (PSI/KS)",
             ["feature"]
         )
-        
+
         # Business metrics
         self.fraud_detected = create_counter(
             f"{prefix}fraud_detected_total",
@@ -221,7 +226,7 @@ class ServiceMetrics:
             "Estimated loss prevented in paise",
             ["vector"]
         )
-        
+
         # System metrics
         self.active_connections = create_gauge(
             f"{prefix}active_connections",
@@ -235,39 +240,39 @@ class ServiceMetrics:
             f"{prefix}cpu_usage_percent",
             "CPU usage percent"
         )
-    
+
     def record_request(self, method: str, endpoint: str, status: int, latency: float):
         """Record HTTP request metrics."""
         self.requests_total.labels(method=method, endpoint=endpoint, status=status).inc()
         self.request_latency.labels(method=method, endpoint=endpoint).observe(latency)
-    
+
     def record_grpc_request(self, method: str, status: str, latency: float):
         """Record gRPC request metrics."""
         self.grpc_requests_total.labels(method=method, status=status).inc()
         self.grpc_request_latency.labels(method=method).observe(latency)
-    
+
     def record_inference(self, model: str, latency: float):
         """Record model inference metrics."""
         self.model_inference_latency.labels(model=model).observe(latency)
-    
+
     def record_score(self, vector: str, score: float, action: str):
         """Record model score and action."""
         self.model_score_distribution.labels(vector=vector).observe(score)
         self.model_predictions.labels(vector=vector, action=action).inc()
-    
+
     def record_fraud(self, vector: str, action: str, loss_paise: int = 0):
         """Record fraud detection."""
         self.fraud_detected.labels(vector=vector, action=action).inc()
         if loss_paise > 0:
             self.loss_prevented.labels(vector=vector).inc(loss_paise)
-    
+
     def record_cache(self, cache_name: str, hit: bool):
         """Record cache hit/miss."""
         if hit:
             self.cache_hits.labels(cache_name=cache_name).inc()
         else:
             self.cache_misses.labels(cache_name=cache_name).inc()
-        
+
         # Update hit rate
         total = self.cache_hits.labels(cache_name=cache_name)._value.get() + \
                 self.cache_misses.labels(cache_name=cache_name)._value.get()
@@ -277,7 +282,7 @@ class ServiceMetrics:
 
 
 # Decorators for automatic metrics
-def track_latency(histogram: Histogram, labels: Dict[str, str] = None):
+def track_latency(histogram: Histogram, labels: dict[str, str] = None):
     """Decorator to track function latency."""
     def decorator(func: Callable):
         @wraps(func)
@@ -292,7 +297,7 @@ def track_latency(histogram: Histogram, labels: Dict[str, str] = None):
                     histogram.labels(**labels).observe(elapsed)
                 else:
                     histogram.observe(elapsed)
-        
+
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             start = time.perf_counter()
@@ -305,7 +310,7 @@ def track_latency(histogram: Histogram, labels: Dict[str, str] = None):
                     histogram.labels(**labels).observe(elapsed)
                 else:
                     histogram.observe(elapsed)
-        
+
         import asyncio
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
@@ -313,7 +318,7 @@ def track_latency(histogram: Histogram, labels: Dict[str, str] = None):
     return decorator
 
 
-def track_requests(counter: Counter, histogram: Histogram, labels: Dict[str, str] = None):
+def track_requests(counter: Counter, histogram: Histogram, labels: dict[str, str] = None):
     """Decorator to track request count and latency."""
     def decorator(func: Callable):
         @wraps(func)
@@ -323,7 +328,7 @@ def track_requests(counter: Counter, histogram: Histogram, labels: Dict[str, str
             try:
                 result = await func(*args, **kwargs)
                 return result
-            except Exception as e:
+            except Exception:
                 status = "error"
                 raise
             finally:
@@ -339,7 +344,7 @@ def track_requests(counter: Counter, histogram: Histogram, labels: Dict[str, str
 
 
 @contextmanager
-def trace_operation(name: str, attributes: Dict[str, Any] = None):
+def trace_operation(name: str, attributes: dict[str, Any] = None):
     """Context manager for tracing operations."""
     tracer = get_tracer(__name__)
     with tracer.start_as_current_span(name) as span:

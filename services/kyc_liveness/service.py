@@ -24,11 +24,11 @@ To enable in production:
 
 class KycLivenessService:
     """STUB: Deepfake KYC detector."""
-    
+
     def __init__(self, config=None):
         self.config = config
         self.is_fitted = False
-    
+
     async def check_session(self, video_b64: str, challenge_type: str = None) -> dict:
         """STUB: Returns mock decision."""
         return {
@@ -40,7 +40,7 @@ class KycLivenessService:
             "injection_detected": False,
             "document_forged": False,
         }
-    
+
     def train(self, *args, **kwargs):
         print("[KYC] Skipped — requires video pipeline + GPU + compliance")
         self.is_fitted = True

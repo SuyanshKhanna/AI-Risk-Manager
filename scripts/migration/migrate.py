@@ -2,19 +2,17 @@
 
 import asyncio
 import sys
-from pathlib import Path
-from typing import Optional
 
 import asyncpg
-from alembic.config import Config
 from alembic import command
+from alembic.config import Config
 
 
 async def run_migrations(direction: str = "up", database_url: str = None):
     """Run database migrations."""
     if database_url is None:
         database_url = "postgresql://feast:feast@localhost:5432/ai_risk_manager"
-    
+
     if direction == "up":
         await upgrade(database_url)
     elif direction == "down":
@@ -26,30 +24,30 @@ async def run_migrations(direction: str = "up", database_url: str = None):
 async def upgrade(database_url: str):
     """Run upgrade migrations."""
     print("Running upgrade migrations...")
-    
+
     # Alembic upgrade
     alembic_cfg = Config("alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", database_url)
     command.upgrade(alembic_cfg, "head")
-    
+
     print("Upgrade complete")
 
 
 async def downgrade(database_url: str):
     """Run downgrade migrations."""
     print("Running downgrade migrations...")
-    
+
     alembic_cfg = Config("alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", database_url)
     command.downgrade(alembic_cfg, "-1")
-    
+
     print("Downgrade complete")
 
 
 async def create_tables(database_url: str):
     """Create initial tables if they don't exist."""
     conn = await asyncpg.connect(database_url)
-    
+
     try:
         # Create core tables
         await conn.execute("""
@@ -70,7 +68,7 @@ async def create_tables(database_url: str):
                 updated_at TIMESTAMP DEFAULT NOW()
             )
         """)
-        
+
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS customers (
                 customer_id VARCHAR(50) PRIMARY KEY,
@@ -89,7 +87,7 @@ async def create_tables(database_url: str):
                 updated_at TIMESTAMP DEFAULT NOW()
             )
         """)
-        
+
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS devices (
                 device_fingerprint VARCHAR(100) PRIMARY KEY,
@@ -109,7 +107,7 @@ async def create_tables(database_url: str):
                 updated_at TIMESTAMP DEFAULT NOW()
             )
         """)
-        
+
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS transactions (
                 order_id VARCHAR(50) PRIMARY KEY,
@@ -129,7 +127,7 @@ async def create_tables(database_url: str):
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)
-        
+
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS model_predictions (
                 id BIGSERIAL PRIMARY KEY,
@@ -144,7 +142,7 @@ async def create_tables(database_url: str):
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)
-        
+
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS feedback_labels (
                 id BIGSERIAL PRIMARY KEY,
@@ -157,29 +155,29 @@ async def create_tables(database_url: str):
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)
-        
+
         await conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_transactions_merchant_time 
             ON transactions(merchant_id, timestamp)
         """)
-        
+
         await conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_transactions_customer_time 
             ON transactions(customer_id, timestamp)
         """)
-        
+
         await conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_model_predictions_merchant_time 
             ON model_predictions(merchant_id, created_at)
         """)
-        
+
         await conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_feedback_labels_request 
             ON feedback_labels(request_id)
         """)
-        
+
         print("Tables created successfully")
-        
+
     finally:
         await conn.close()
 
@@ -188,10 +186,10 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python migrate.py [up|down|create]")
         sys.exit(1)
-    
+
     direction = sys.argv[1]
     database_url = sys.argv[2] if len(sys.argv) > 2 else None
-    
+
     if direction == "create":
         asyncio.run(create_tables(database_url))
     else:

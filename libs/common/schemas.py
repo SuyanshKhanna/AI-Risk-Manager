@@ -1,9 +1,10 @@
 """Shared Pydantic schemas for all services."""
 
-from enum import Enum
-from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field
 from datetime import datetime
+from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 
 class Action(str, Enum):
@@ -40,7 +41,7 @@ class BaseRequest(BaseModel):
     request_id: str = Field(..., description="Unique request identifier")
     merchant_id: str = Field(..., description="Merchant identifier")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class BaseResponse(BaseModel):
@@ -48,8 +49,8 @@ class BaseResponse(BaseModel):
     request_id: str
     risk_score: float = Field(..., ge=0.0, le=1.0, description="Risk score [0,1]")
     action: Action
-    reasons: List[str] = Field(default_factory=list)
-    shap_values: Dict[str, float] = Field(default_factory=dict)
+    reasons: list[str] = Field(default_factory=list)
+    shap_values: dict[str, float] = Field(default_factory=dict)
     model_version: str
     latency_ms: float
     vector: FraudVector
@@ -62,11 +63,11 @@ class UpiTxnRequest(BaseRequest):
     amount_paise: int = Field(..., gt=0)
     upi_handle: str
     device_fingerprint: str
-    qr_image_b64: Optional[str] = None
-    screenshot_b64: Optional[str] = None
-    screenshot_ts_ms: Optional[int] = None
-    pg_callback_status: Optional[str] = None
-    pg_callback_ts_ms: Optional[int] = None
+    qr_image_b64: str | None = None
+    screenshot_b64: str | None = None
+    screenshot_ts_ms: int | None = None
+    pg_callback_status: str | None = None
+    pg_callback_ts_ms: int | None = None
 
 
 class UpiTxnResponse(BaseResponse):
@@ -82,10 +83,10 @@ class VoiceAuthRequest(BaseRequest):
     """Voice authentication request."""
     call_session_id: str
     audio_b64: str  # Base64 encoded 16kHz audio
-    caller_id: Optional[str] = None
-    enrolled_voiceprint_id: Optional[str] = None
-    challenge_digits: Optional[str] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    caller_id: str | None = None
+    enrolled_voiceprint_id: str | None = None
+    challenge_digits: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class VoiceAuthResponse(BaseResponse):
@@ -93,7 +94,7 @@ class VoiceAuthResponse(BaseResponse):
     vector: FraudVector = FraudVector.VOICE
     liveness_score: float = 0.0
     voiceprint_match: float = 0.0
-    codec_detected: Optional[str] = None
+    codec_detected: str | None = None
 
 
 # KYC-specific models
@@ -101,9 +102,9 @@ class KycLivenessRequest(BaseRequest):
     """KYC liveness check request."""
     session_id: str
     video_b64: str  # Base64 encoded video frames
-    document_image_b64: Optional[str] = None
-    challenge_type: Optional[str] = None  # blink, smile, head_turn
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    document_image_b64: str | None = None
+    challenge_type: str | None = None  # blink, smile, head_turn
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class KycLivenessResponse(BaseResponse):
@@ -125,15 +126,15 @@ class ChargebackRequest(BaseRequest):
     reason_code: str
     issuer_id: str
     card_network: str
-    evidence: Dict[str, Any] = Field(default_factory=dict)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ChargebackResponse(BaseResponse):
     """Chargeback dispute response."""
     vector: FraudVector = FraudVector.CHARGEBACK
     win_probability: float = 0.0
-    evidence_package: Optional[Dict[str, Any]] = None
+    evidence_package: dict[str, Any] | None = None
     auto_submit: bool = False
 
 
@@ -142,10 +143,10 @@ class ReturnRiskRequest(BaseRequest):
     """Return risk scoring request."""
     return_id: str
     order_id: str
-    damage_images_b64: List[str] = Field(default_factory=list)
+    damage_images_b64: list[str] = Field(default_factory=list)
     return_reason: str
-    customer_return_history: Dict[str, Any] = Field(default_factory=dict)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    customer_return_history: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ReturnRiskResponse(BaseResponse):
@@ -165,15 +166,15 @@ class ReviewRingRequest(BaseRequest):
     reviewer_id: str
     review_text: str
     rating: int = Field(..., ge=1, le=5)
-    session_data: Dict[str, Any] = Field(default_factory=dict)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    session_data: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ReviewRingResponse(BaseResponse):
     """Review ring detection response."""
     vector: FraudVector = FraudVector.REVIEW
     ring_probability: float = 0.0
-    cluster_id: Optional[str] = None
+    cluster_id: str | None = None
     is_purchase_verified: bool = False
     behavioral_anomaly: float = 0.0
 
@@ -183,10 +184,10 @@ class DecisionRequest(BaseModel):
     """Unified decision request."""
     request_id: str
     merchant_id: str
-    vector_scores: Dict[FraudVector, float]
-    vector_actions: Dict[FraudVector, Action]
-    vector_reasons: Dict[FraudVector, List[str]]
-    context: Dict[str, Any] = Field(default_factory=dict)
+    vector_scores: dict[FraudVector, float]
+    vector_actions: dict[FraudVector, Action]
+    vector_reasons: dict[FraudVector, list[str]]
+    context: dict[str, Any] = Field(default_factory=dict)
 
 
 class DecisionResponse(BaseModel):
@@ -194,9 +195,9 @@ class DecisionResponse(BaseModel):
     request_id: str
     final_action: Action
     final_score: float
-    applied_rules: List[str]
-    vector_contributions: Dict[FraudVector, float]
-    shap_values: Dict[str, float]
+    applied_rules: list[str]
+    vector_contributions: dict[FraudVector, float]
+    shap_values: dict[str, float]
     model_version: str
     latency_ms: float
 
@@ -209,7 +210,7 @@ class FeedbackLabel(BaseModel):
     true_label: int  # 0 = legitimate, 1 = fraud
     label_source: str  # "chargeback", "manual_review", "investigation", "synthetic"
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -220,8 +221,8 @@ class HealthResponse(BaseModel):
     service: str
     version: str
     uptime_seconds: float
-    dependencies: Dict[str, str] = Field(default_factory=dict)
-    metrics: Dict[str, float] = Field(default_factory=dict)
+    dependencies: dict[str, str] = Field(default_factory=dict)
+    metrics: dict[str, float] = Field(default_factory=dict)
 
 
 # Metrics models
@@ -234,7 +235,7 @@ class MetricsSnapshot(BaseModel):
     latency_p50_ms: float
     latency_p95_ms: float
     latency_p99_ms: float
-    score_distribution: Dict[str, int]  # binned scores
-    action_distribution: Dict[Action, int]
+    score_distribution: dict[str, int]  # binned scores
+    action_distribution: dict[Action, int]
     drift_detected: bool = False
-    drift_features: List[str] = Field(default_factory=list)
+    drift_features: list[str] = Field(default_factory=list)

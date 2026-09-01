@@ -1,16 +1,16 @@
 """Authentication and authorization utilities."""
 
-import jwt
-import time
 import hashlib
 import secrets
-from typing import Optional, Dict, Any, List
+import time
 from datetime import datetime, timedelta, timezone
 from functools import wraps
+from typing import Any
 
+import jwt
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-from fastapi import HTTPException, Depends, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from .schemas import FraudVector
 
@@ -19,11 +19,11 @@ class TokenPayload(BaseModel):
     """JWT token payload."""
     sub: str  # subject (service name or user ID)
     iss: str  # issuer
-    aud: List[str]  # audience
+    aud: list[str]  # audience
     exp: int  # expiration timestamp
     iat: int  # issued at timestamp
-    scopes: List[str] = []
-    metadata: Dict[str, Any] = {}
+    scopes: list[str] = []
+    metadata: dict[str, Any] = {}
 
 
 class APIKey(BaseModel):
@@ -31,14 +31,14 @@ class APIKey(BaseModel):
     key_id: str
     key_hash: str
     name: str
-    scopes: List[str]
-    merchant_ids: List[str]  # Empty = all merchants
-    vectors: List[FraudVector]  # Empty = all vectors
+    scopes: list[str]
+    merchant_ids: list[str]  # Empty = all merchants
+    vectors: list[FraudVector]  # Empty = all vectors
     rate_limit: int = 1000  # requests per minute
     created_at: datetime
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     is_active: bool = True
-    last_used: Optional[datetime] = None
+    last_used: datetime | None = None
 
 
 class AuthConfig:
@@ -46,7 +46,7 @@ class AuthConfig:
     JWT_SECRET: str = "dev-secret-change-in-production"
     JWT_ALGORITHM: str = "HS256"
     JWT_ISSUER: str = "ai-risk-manager"
-    JWT_AUDIENCE: List[str] = ["ai-risk-manager-api"]
+    JWT_AUDIENCE: list[str] = ["ai-risk-manager-api"]
     JWT_EXPIRY_MINUTES: int = 60
     API_KEY_PREFIX: str = "ak_"
     API_KEY_LENGTH: int = 32
@@ -54,8 +54,8 @@ class AuthConfig:
 
 def create_jwt_token(
     subject: str,
-    scopes: List[str] = None,
-    metadata: Dict[str, Any] = None,
+    scopes: list[str] = None,
+    metadata: dict[str, Any] = None,
     expiry_minutes: int = None,
     config: AuthConfig = None,
 ) -> str:
@@ -63,7 +63,7 @@ def create_jwt_token(
     config = config or AuthConfig()
     now = datetime.now(timezone.utc)
     expiry = now + timedelta(minutes=expiry_minutes or config.JWT_EXPIRY_MINUTES)
-    
+
     payload = TokenPayload(
         sub=subject,
         iss=config.JWT_ISSUER,
@@ -73,7 +73,7 @@ def create_jwt_token(
         scopes=scopes or [],
         metadata=metadata or {},
     )
-    
+
     return jwt.encode(
         payload.model_dump(),
         config.JWT_SECRET,
@@ -84,7 +84,7 @@ def create_jwt_token(
 def decode_jwt_token(token: str, config: AuthConfig = None) -> TokenPayload:
     """Decode and validate a JWT token."""
     config = config or AuthConfig()
-    
+
     try:
         payload = jwt.decode(
             token,
@@ -97,7 +97,7 @@ def decode_jwt_token(token: str, config: AuthConfig = None) -> TokenPayload:
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+        raise HTTPException(status_code=401, detail=f"Invalid token: {e!s}")
 
 
 def generate_api_key(config: AuthConfig = None) -> tuple[str, str]:
@@ -125,33 +125,33 @@ security = HTTPBearer(auto_error=False)
 
 
 async def get_current_token(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     config: AuthConfig = None,
-) -> Optional[TokenPayload]:
+) -> TokenPayload | None:
     """Extract and validate JWT token from Authorization header."""
     if not credentials:
         return None
-    
+
     if credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-    
+
     return decode_jwt_token(credentials.credentials, config)
 
 
 async def require_scopes(
-    required_scopes: List[str],
+    required_scopes: list[str],
     token: TokenPayload = Depends(get_current_token),
 ) -> TokenPayload:
     """Require specific scopes in JWT token."""
     if not token:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     if not all(scope in token.scopes for scope in required_scopes):
         raise HTTPException(
             status_code=403,
             detail=f"Insufficient scopes. Required: {required_scopes}, Have: {token.scopes}"
         )
-    
+
     return token
 
 
@@ -162,7 +162,7 @@ async def require_merchant_access(
     """Require access to specific merchant."""
     if not token:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     # Check if token has merchant access (via metadata or scopes)
     allowed_merchants = token.metadata.get("merchant_ids", [])
     if allowed_merchants and merchant_id not in allowed_merchants:
@@ -170,7 +170,7 @@ async def require_merchant_access(
             status_code=403,
             detail=f"Access denied to merchant {merchant_id}"
         )
-    
+
     return token
 
 
@@ -181,21 +181,21 @@ async def require_vector_access(
     """Require access to specific fraud vector."""
     if not token:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     allowed_vectors = token.metadata.get("vectors", [])
     if allowed_vectors and vector.value not in allowed_vectors:
         raise HTTPException(
             status_code=403,
             detail=f"Access denied to vector {vector.value}"
         )
-    
+
     return token
 
 
 # Service-to-service authentication
 def create_service_token(
     service_name: str,
-    vectors: List[FraudVector] = None,
+    vectors: list[FraudVector] = None,
     expiry_hours: int = 24,
     config: AuthConfig = None,
 ) -> str:
@@ -215,47 +215,47 @@ def create_service_token(
 def validate_service_token(token: str, expected_service: str = None) -> TokenPayload:
     """Validate a service-to-service token."""
     payload = decode_jwt_token(token)
-    
+
     if payload.metadata.get("type") != "service":
         raise HTTPException(status_code=403, detail="Not a service token")
-    
+
     if expected_service and payload.sub != expected_service:
         raise HTTPException(status_code=403, detail="Invalid service")
-    
+
     return payload
 
 
 # Rate limiting
 class RateLimiter:
     """Simple in-memory rate limiter."""
-    
+
     def __init__(self):
-        self._requests: Dict[str, List[float]] = {}
-    
+        self._requests: dict[str, list[float]] = {}
+
     def is_allowed(self, key: str, limit: int, window_seconds: int = 60) -> bool:
         """Check if request is allowed under rate limit."""
         now = time.time()
         if key not in self._requests:
             self._requests[key] = []
-        
+
         # Remove old requests outside window
         self._requests[key] = [
             ts for ts in self._requests[key]
             if now - ts < window_seconds
         ]
-        
+
         if len(self._requests[key]) >= limit:
             return False
-        
+
         self._requests[key].append(now)
         return True
-    
+
     def get_remaining(self, key: str, limit: int, window_seconds: int = 60) -> int:
         """Get remaining requests in current window."""
         now = time.time()
         if key not in self._requests:
             return limit
-        
+
         current = len([
             ts for ts in self._requests[key]
             if now - ts < window_seconds
@@ -283,17 +283,17 @@ def rate_limit(limit: int, window_seconds: int = 60, key_func: callable = None):
                     if isinstance(v, Request):
                         request = v
                         break
-            
+
             if request:
                 key = key_func(request) if key_func else request.client.host
                 if not rate_limiter.is_allowed(key, limit, window_seconds):
                     remaining = rate_limiter.get_remaining(key, limit, window_seconds)
                     raise HTTPException(
                         status_code=429,
-                        detail=f"Rate limit exceeded. Try again later.",
+                        detail="Rate limit exceeded. Try again later.",
                         headers={"X-RateLimit-Remaining": str(remaining)}
                     )
-            
+
             return await func(*args, **kwargs)
         return wrapper
     return decorator

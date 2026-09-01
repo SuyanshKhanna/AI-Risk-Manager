@@ -4,12 +4,11 @@ version = "0.1.0"
 description = "UPI Fraud Detector — Hackathon MVP (LightGBM + SHAP)"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 authors = [{name = "AI Risk Manager Team", email = "team@ai-risk-manager.dev"}]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Financial and Insurance Industry",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Topic :: Security :: Fraud Detection",
@@ -70,7 +69,7 @@ dev-dependencies = [
 [tool.ruff]
 target-version = "py310"
 line-length = 100
-select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM", "T20", "PTH", "ERA", "PD", "PL", "TRY", "NPY", "RUF", "ARG", "TCH", "INT", "FUR", "LOG"]
+select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM", "T20", "PTH", "ERA", "PD", "PL", "TRY", "NPY", "RUF", "ARG", "TCH", "INT", "LOG"]
 ignore = ["S101", "S311", "S603", "S607"]
 per-file-ignores = { "tests/*" = ["S101", "S311", "S603", "S607"], "scripts/*" = ["S603", "S607"] }
 
@@ -90,6 +89,7 @@ no_implicit_optional = true
 show_error_codes = true
 pretty = true
 ignore_missing_imports = true
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = ["tests.*", "scripts.*"]
@@ -100,11 +100,13 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --strict-markers --tb=short -p no:asyncio"
+addopts = "-v --strict-markers --tb=short"
+asyncio_mode = "auto"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
     "slow: Slow running tests",
+    "asyncio: Async tests",
 ]
 
 [tool.coverage.run]
@@ -125,3 +127,8 @@ skip_covered = true
 [build-system]
 requires = ["setuptools>=70", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["services*", "scripts*"]
+exclude = ["tests*", "infra*", "docker*", "models*", "configs*", "libs*", "pipelines*", "data*"]

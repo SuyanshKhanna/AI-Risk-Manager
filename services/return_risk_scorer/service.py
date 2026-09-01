@@ -26,11 +26,11 @@ To enable in production:
 
 class ReturnRiskScorerService:
     """STUB: Return fraud risk scorer."""
-    
+
     def __init__(self, config=None):
         self.config = config
         self.is_fitted = False
-    
+
     async def score_return(self, return_id: str, damage_images: list) -> dict:
         """STUB: Returns mock decision."""
         return {
@@ -42,7 +42,7 @@ class ReturnRiskScorerService:
             "requires_video": False,
             "requires_inspection": False,
         }
-    
+
     def train(self, *args, **kwargs):
         print("[ReturnRisk] Skipped — requires image forensics + video pipeline")
         self.is_fitted = True

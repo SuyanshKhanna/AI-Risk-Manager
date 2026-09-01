@@ -12,11 +12,9 @@ Generates realistic synthetic data for all 6 fraud vectors:
 """
 
 import argparse
-import json
 import hashlib
+from datetime import datetime, timezone
 from pathlib import Path
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -35,12 +33,12 @@ def generate_merchant_data(n: int) -> pd.DataFrame:
     """Generate merchant data."""
     categories = ["electronics", "fashion", "grocery", "food", "travel", "services", "health", "education"]
     risk_tiers = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
-    
+
     data = []
     for i in range(n):
         merchant_id = f"M{i:06d}"
         onboarded = fake.date_between(start_date="-3y", end_date="-30d")
-        
+
         # Base GMV based on category
         category = np.random.choice(categories)
         base_gmv = {
@@ -48,14 +46,14 @@ def generate_merchant_data(n: int) -> pd.DataFrame:
             "food": 1e7, "travel": 4e7, "services": 2e7,
             "health": 1.5e7, "education": 1e7,
         }[category]
-        
+
         gmv_30d = np.random.lognormal(np.log(base_gmv), 0.5)
         txn_count_30d = int(gmv_30d / np.random.lognormal(8, 0.5))
-        
+
         # Fraud rates vary by tier
         risk_tier = np.random.choice(risk_tiers, p=[0.6, 0.25, 0.1, 0.05])
         fraud_rate_base = {"LOW": 0.001, "MEDIUM": 0.005, "HIGH": 0.02, "CRITICAL": 0.05}[risk_tier]
-        
+
         data.append({
             "merchant_id": merchant_id,
             "merchant_category": category,
@@ -70,27 +68,27 @@ def generate_merchant_data(n: int) -> pd.DataFrame:
             "merchant_fraud_rate_30d": np.random.beta(1 + fraud_rate_base*1000, 999),
             "merchant_dispute_win_rate_90d": np.random.beta(50, 10),
         })
-    
+
     return pd.DataFrame(data)
 
 
-def generate_customer_data(n: int, merchant_ids: List[str]) -> pd.DataFrame:
+def generate_customer_data(n: int, merchant_ids: list[str]) -> pd.DataFrame:
     """Generate customer data."""
     risk_tiers = ["LOW", "MEDIUM", "HIGH"]
     categories = ["electronics", "fashion", "grocery", "food", "travel", "services"]
     payment_methods = ["upi", "card", "wallet", "netbanking"]
-    
+
     data = []
     for i in range(n):
         customer_id = f"C{i:08d}"
-        
+
         risk_tier = np.random.choice(risk_tiers, p=[0.7, 0.2, 0.1])
         fraud_rate = {"LOW": 0.001, "MEDIUM": 0.01, "HIGH": 0.05}[risk_tier]
-        
+
         txn_count = np.random.poisson(10)
         preferred_cats = list(np.random.choice(categories, np.random.randint(1, 4), replace=False))
         preferred_pmts = list(np.random.choice(payment_methods, np.random.randint(1, 3), replace=False))
-        
+
         data.append({
             "customer_id": customer_id,
             "customer_txn_count_30d": txn_count,
@@ -105,7 +103,7 @@ def generate_customer_data(n: int, merchant_ids: List[str]) -> pd.DataFrame:
             "customer_preferred_categories": str(preferred_cats),
             "customer_preferred_payment_methods": str(preferred_pmts),
         })
-    
+
     return pd.DataFrame(data)
 
 
@@ -113,11 +111,11 @@ def generate_device_data(n: int) -> pd.DataFrame:
     """Generate device data."""
     os_list = ["android", "ios", "web"]
     models = ["pixel", "samsung", "xiaomi", "iphone", "oneplus", "other"]
-    
+
     data = []
     for i in range(n):
         device_fp = f"dev_{i:010d}"
-        
+
         data.append({
             "device_fingerprint": device_fp,
             "device_os": np.random.choice(os_list, p=[0.7, 0.2, 0.1]),
@@ -133,18 +131,18 @@ def generate_device_data(n: int) -> pd.DataFrame:
             "device_upi_handle_count_30d": np.random.poisson(3),
             "device_fraud_reports_30d": np.random.poisson(0.05),
         })
-    
+
     return pd.DataFrame(data)
 
 
 def generate_upi_handle_data(n: int) -> pd.DataFrame:
     """Generate UPI handle data."""
     banks = ["icici", "hdfc", "sbi", "axis", "kotak", "yes", "indusind", "paytm", "phonepe", "gpay"]
-    
+
     data = []
     for i in range(n):
         handle = f"user{i}@{np.random.choice(banks)}"
-        
+
         data.append({
             "upi_handle": handle,
             "upi_txn_count_5min": np.random.poisson(0.1),
@@ -157,16 +155,16 @@ def generate_upi_handle_data(n: int) -> pd.DataFrame:
             "upi_chargeback_count_24hr": np.random.poisson(0.01),
             "upi_dispute_rate_24hr": np.random.beta(1, 200),
         })
-    
+
     return pd.DataFrame(data)
 
 
 def generate_transaction_data(
     n: int,
-    merchant_ids: List[str],
-    customer_ids: List[str],
-    device_ids: List[str],
-    upi_handles: List[str],
+    merchant_ids: list[str],
+    customer_ids: list[str],
+    device_ids: list[str],
+    upi_handles: list[str],
 ) -> pd.DataFrame:
     """Generate transaction data with fraud labels."""
     categories = ["electronics", "fashion", "grocery", "food", "travel", "services"]
@@ -174,29 +172,29 @@ def generate_transaction_data(
     delivery_statuses = ["delivered", "shipped", "processing", "returned", "cancelled"]
     return_statuses = ["none", "requested", "approved", "rejected", "received"]
     chargeback_statuses = ["none", "disputed", "won", "lost"]
-    
+
     data = []
     for i in range(n):
         merchant_id = np.random.choice(merchant_ids)
         customer_id = np.random.choice(customer_ids)
         device_fp = np.random.choice(device_ids)
         upi_handle = np.random.choice(upi_handles)
-        
+
         # Transaction amount
         amount = int(np.random.lognormal(8, 0.7))
-        
+
         # Timestamp within last 90 days
         txn_time = fake.date_time_between(start_date="-90d", end_date="now", tzinfo=timezone.utc)
-        
+
         # Fraud label (rare)
         is_fraud = np.random.random() < 0.005
-        
+
         # Chargeback if fraud (with some probability)
         if is_fraud:
             cb_status = np.random.choice(chargeback_statuses[1:], p=[0.6, 0.2, 0.2])
         else:
             cb_status = "none"
-        
+
         data.append({
             "order_id": f"ORD{i:010d}",
             "order_amount_paise": amount,
@@ -213,7 +211,7 @@ def generate_transaction_data(
             "order_chargeback_status": cb_status,
             "is_fraud": is_fraud,
         })
-    
+
     return pd.DataFrame(data)
 
 
@@ -225,12 +223,12 @@ def generate_voice_call_data(n: int) -> pd.DataFrame:
     urgency_kw = ["urgent", "immediate", "emergency", "asap", "critical"]
     secrecy_kw = ["confidential", "secret", "private", "don't tell"]
     authority_kw = ["police", "government", "bank", "ceo", "director", "manager"]
-    
+
     data = []
     for i in range(n):
         call_sid = f"CALL{i:010d}"
         is_vishing = np.random.random() < 0.002
-        
+
         # Vishing calls have characteristic patterns
         if is_vishing:
             urgency_count = np.random.randint(2, 5)
@@ -240,7 +238,7 @@ def generate_voice_call_data(n: int) -> pd.DataFrame:
             urgency_count = np.random.randint(0, 1)
             secrecy_count = np.random.randint(0, 1)
             authority_count = np.random.randint(0, 1)
-        
+
         data.append({
             "call_session_id": call_sid,
             "call_duration_seconds": int(np.random.exponential(180)),
@@ -257,7 +255,7 @@ def generate_voice_call_data(n: int) -> pd.DataFrame:
             "call_timestamp": fake.date_time_between(start_date="-30d", end_date="now", tzinfo=timezone.utc).timestamp(),
             "is_vishing": is_vishing,
         })
-    
+
     return pd.DataFrame(data)
 
 
@@ -266,13 +264,13 @@ def generate_kyc_session_data(n: int) -> pd.DataFrame:
     challenge_types = ["blink", "smile", "head_turn", "nod", "speak"]
     devices = ["mobile", "laptop", "tablet"]
     networks = ["wifi", "4g", "5g"]
-    
+
     data = []
     for i in range(n):
         session_id = f"KYC{i:010d}"
         is_deepfake = np.random.random() < 0.003
         is_injection = np.random.random() < 0.002
-        
+
         # Deepfake sessions have lower quality
         if is_deepfake:
             face_quality = np.random.beta(2, 5)
@@ -283,7 +281,7 @@ def generate_kyc_session_data(n: int) -> pd.DataFrame:
         else:
             face_quality = np.random.beta(8, 2)
             liveness_score = np.random.beta(9, 1)
-        
+
         data.append({
             "session_id": session_id,
             "customer_id": f"C{np.random.randint(1, 10000):08d}",
@@ -297,26 +295,26 @@ def generate_kyc_session_data(n: int) -> pd.DataFrame:
             "document_forged": np.random.random() < 0.001,
             "session_timestamp": fake.date_time_between(start_date="-30d", end_date="now", tzinfo=timezone.utc).timestamp(),
         })
-    
+
     return pd.DataFrame(data)
 
 
 def generate_return_data(
     n: int,
-    order_ids: List[str],
-    customer_ids: List[str],
+    order_ids: list[str],
+    customer_ids: list[str],
 ) -> pd.DataFrame:
     """Generate return request data with fraud labels."""
     reasons = ["damaged", "wrong_item", "not_as_described", "size_issue", "changed_mind", "defective"]
     return_statuses = ["requested", "approved", "rejected", "received", "inspected"]
-    
+
     data = []
     for i in range(n):
         order_id = np.random.choice(order_ids)
         customer_id = np.random.choice(customer_ids)
-        
+
         is_fraud = np.random.random() < 0.02  # 2% return fraud
-        
+
         if is_fraud:
             # AI-generated damage photos
             image_score = np.random.beta(2, 5)  # Low forensic score = suspicious
@@ -324,7 +322,7 @@ def generate_return_data(
         else:
             image_score = np.random.beta(8, 2)  # High forensic score = genuine
             video_provided = np.random.random() < 0.7
-        
+
         data.append({
             "return_id": f"RET{i:010d}",
             "order_id": order_id,
@@ -337,18 +335,18 @@ def generate_return_data(
             "return_timestamp": fake.date_time_between(start_date="-90d", end_date="now", tzinfo=timezone.utc).timestamp(),
             "is_return_fraud": is_fraud,
         })
-    
+
     return pd.DataFrame(data)
 
 
 def generate_review_data(
     n: int,
-    product_ids: List[str],
-    customer_ids: List[str],
+    product_ids: list[str],
+    customer_ids: list[str],
 ) -> pd.DataFrame:
     """Generate review data with ring detection labels."""
     data = []
-    
+
     # Create some coordinated rings
     n_rings = 5
     ring_size = 20
@@ -356,10 +354,10 @@ def generate_review_data(
     for r in range(n_rings):
         ring_customers = [f"RING{r}_C{c:04d}" for c in range(ring_size)]
         ring_accounts.extend(ring_customers)
-    
+
     for i in range(n):
         product_id = np.random.choice(product_ids)
-        
+
         # Some reviews from ring accounts
         if np.random.random() < 0.05 and ring_accounts:
             customer_id = np.random.choice(ring_accounts)
@@ -367,9 +365,9 @@ def generate_review_data(
         else:
             customer_id = np.random.choice(customer_ids)
             is_ring = False
-        
+
         review_text = fake.paragraph(nb_sentences=3)
-        
+
         # Ring reviews have similar patterns
         if is_ring:
             rating = np.random.choice([4, 5], p=[0.3, 0.7])
@@ -379,7 +377,7 @@ def generate_review_data(
             rating = np.random.choice([1, 2, 3, 4, 5], p=[0.05, 0.05, 0.1, 0.3, 0.5])
             perplexity = np.random.uniform(30, 100)
             burst_score = np.random.uniform(0, 0.3)
-        
+
         data.append({
             "review_id": f"REV{i:010d}",
             "product_id": product_id,
@@ -392,7 +390,7 @@ def generate_review_data(
             "review_timestamp": fake.date_time_between(start_date="-30d", end_date="now", tzinfo=timezone.utc).timestamp(),
             "is_ring_review": is_ring,
         })
-    
+
     return pd.DataFrame(data)
 
 
@@ -411,29 +409,29 @@ def generate_all_data(
 ):
     """Generate all synthetic datasets."""
     set_seeds(seed)
-    
+
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     print(f"Generating synthetic data in {output_path}")
-    
+
     # Generate core entities
     print("Generating merchants...")
     merchants = generate_merchant_data(n_merchants)
     merchants.to_parquet(output_path / "merchants.parquet", index=False)
-    
+
     print("Generating customers...")
     customers = generate_customer_data(n_customers, merchants["merchant_id"].tolist())
     customers.to_parquet(output_path / "customers.parquet", index=False)
-    
+
     print("Generating devices...")
     devices = generate_device_data(n_devices)
     devices.to_parquet(output_path / "devices.parquet", index=False)
-    
+
     print("Generating UPI handles...")
     upi_handles = generate_upi_handle_data(n_upi_handles)
     upi_handles.to_parquet(output_path / "upi_handles.parquet", index=False)
-    
+
     print("Generating transactions...")
     transactions = generate_transaction_data(
         n_transactions,
@@ -443,15 +441,15 @@ def generate_all_data(
         upi_handles["upi_handle"].tolist(),
     )
     transactions.to_parquet(output_path / "transactions.parquet", index=False)
-    
+
     print("Generating voice calls...")
     calls = generate_voice_call_data(n_calls)
     calls.to_parquet(output_path / "voice_calls.parquet", index=False)
-    
+
     print("Generating KYC sessions...")
     kyc = generate_kyc_session_data(n_kyc)
     kyc.to_parquet(output_path / "kyc_sessions.parquet", index=False)
-    
+
     print("Generating returns...")
     returns = generate_return_data(
         n_returns,
@@ -459,7 +457,7 @@ def generate_all_data(
         customers["customer_id"].tolist(),
     )
     returns.to_parquet(output_path / "returns.parquet", index=False)
-    
+
     print("Generating reviews...")
     reviews = generate_review_data(
         n_reviews,
@@ -467,12 +465,12 @@ def generate_all_data(
         customers["customer_id"].tolist(),
     )
     reviews.to_parquet(output_path / "reviews.parquet", index=False)
-    
+
     # Generate feature store format
     print("Generating feature store files...")
     feature_dir = output_path / "feast" / "offline"
     feature_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Add event timestamps
     for df, name in [
         (merchants, "merchant"),
@@ -483,23 +481,23 @@ def generate_all_data(
         df["event_timestamp"] = datetime.now(timezone.utc)
         df["created_timestamp"] = datetime.now(timezone.utc)
         df.to_parquet(feature_dir / f"{name}_features.parquet", index=False)
-    
+
     # Transaction features for orders
     order_features = transactions.copy()
     order_features["event_timestamp"] = datetime.now(timezone.utc)
     order_features["created_timestamp"] = datetime.now(timezone.utc)
     order_features.to_parquet(feature_dir / "order_features.parquet", index=False)
-    
+
     # Call session features
     call_features = calls.copy()
     call_features["event_timestamp"] = datetime.now(timezone.utc)
     call_features["created_timestamp"] = datetime.now(timezone.utc)
     call_features.to_parquet(feature_dir / "call_session_features.parquet", index=False)
-    
+
     print("Done!")
-    
+
     # Print summary
-    print(f"\nData Summary:")
+    print("\nData Summary:")
     print(f"  Merchants: {len(merchants)}")
     print(f"  Customers: {len(customers)}")
     print(f"  Devices: {len(devices)}")
@@ -524,9 +522,9 @@ def main():
     parser.add_argument("--n-returns", type=int, default=2000)
     parser.add_argument("--n-reviews", type=int, default=10000)
     parser.add_argument("--seed", type=int, default=42)
-    
+
     args = parser.parse_args()
-    
+
     generate_all_data(
         output_dir=args.output_dir,
         n_merchants=args.n_merchants,

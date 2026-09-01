@@ -1,13 +1,17 @@
 """Pytest configuration and fixtures."""
 
-import pytest
+from datetime import datetime, timezone
+
 import numpy as np
 import pandas as pd
-from datetime import datetime, timezone, timedelta
+import pytest
 
 from libs.common.schemas import (
-    Action, FraudVector, UpiTxnRequest, UpiTxnResponse,
-    VoiceAuthRequest, KycLivenessRequest, FeedbackLabel,
+    FeedbackLabel,
+    FraudVector,
+    KycLivenessRequest,
+    UpiTxnRequest,
+    VoiceAuthRequest,
 )
 
 
@@ -71,9 +75,9 @@ def synthetic_fraud_data():
     np.random.seed(42)
     n_samples = 1000
     n_features = 50
-    
+
     X = np.random.randn(n_samples, n_features).astype(np.float32)
-    
+
     # Create fraud signal from first few features
     fraud_signal = (
         2.0 * (X[:, 0] > 1.5) +
@@ -81,26 +85,26 @@ def synthetic_fraud_data():
         1.0 * (X[:, 2] > 2.0) +
         0.5 * np.random.randn(n_samples)
     )
-    
+
     fraud_prob = 1 / (1 + np.exp(-fraud_signal))
     fraud_prob = np.clip(fraud_prob, 0.001, 0.3)
     y = np.random.binomial(1, fraud_prob)
-    
+
     # Gates
     R = np.ones(n_samples, dtype=int)
     O = np.where(y == 1, np.random.binomial(1, 0.7, n_samples), 0)
     D = np.where(O == 1, np.random.binomial(1, 0.8, n_samples), 0)
     groups = np.random.randint(1, 10, n_samples)
-    
+
     # Observed labels
     Y_obs = np.zeros(n_samples)
     labeled_mask = (R == 1) & (O == 1) & (D == 1)
     Y_obs[labeled_mask] = y[labeled_mask]
-    
+
     # Add noise
     noise_mask = labeled_mask & (np.random.random(n_samples) < 0.1)
     Y_obs[noise_mask] = 1 - Y_obs[noise_mask]
-    
+
     return {
         "X": pd.DataFrame(X, columns=[f"feat_{i}" for i in range(X.shape[1])]),
         "y": pd.Series(y, name="label"),
@@ -120,11 +124,11 @@ def synthetic_sequence_data():
     n_samples = 500
     seq_len = 30
     input_dim = 100
-    
+
     sequences = np.random.randn(n_samples, seq_len, input_dim).astype(np.float32)
     static = np.random.randn(n_samples, input_dim).astype(np.float32)
     y = np.random.randint(0, 2, n_samples)
-    
+
     return {
         "sequences": sequences,
         "static": static,
@@ -143,7 +147,7 @@ def reset_singletons():
 def mock_feature_store():
     """Mock feature store for testing."""
     from unittest.mock import MagicMock
-    
+
     mock = MagicMock()
     mock.get_online_features.return_value = {
         "merchant:merchant_gmv_30d": [10000000],

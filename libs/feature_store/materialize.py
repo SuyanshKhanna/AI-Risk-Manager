@@ -1,55 +1,53 @@
 """Feature store materialization jobs."""
 
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
 import logging
-from feast import FeatureStore
-from feast.repo_config import RepoConfig
+from datetime import datetime, timedelta
+from typing import Any
 
-from .definitions import get_all_entities, get_all_feature_views, get_all_sources
+import numpy as np
+import pandas as pd
+from feast import FeatureStore
 
 logger = logging.getLogger(__name__)
 
 
 class FeatureMaterializer:
     """Handles feature materialization for online and offline stores."""
-    
+
     def __init__(self, repo_path: str = "libs/feature_store"):
         self.repo_path = repo_path
         self.store = FeatureStore(repo_path=repo_path)
-    
-    def materialize_incremental(self, end_date: datetime = None) -> Dict[str, Any]:
+
+    def materialize_incremental(self, end_date: datetime = None) -> dict[str, Any]:
         """Materialize features incrementally up to end_date."""
         end_date = end_date or datetime.utcnow()
         start_date = end_date - timedelta(days=1)
-        
+
         logger.info(f"Materializing features from {start_date} to {end_date}")
-        
+
         try:
             self.store.materialize_incremental(end_date=end_date)
             return {"status": "success", "end_date": end_date.isoformat()}
         except Exception as e:
             logger.error(f"Materialization failed: {e}")
             return {"status": "error", "error": str(e)}
-    
-    def materialize(self, start_date: datetime, end_date: datetime) -> Dict[str, Any]:
+
+    def materialize(self, start_date: datetime, end_date: datetime) -> dict[str, Any]:
         """Materialize features for a date range."""
         logger.info(f"Materializing features from {start_date} to {end_date}")
-        
+
         try:
             self.store.materialize(start_date=start_date, end_date=end_date)
             return {"status": "success", "start_date": start_date.isoformat(), "end_date": end_date.isoformat()}
         except Exception as e:
             logger.error(f"Materialization failed: {e}")
             return {"status": "error", "error": str(e)}
-    
+
     def get_online_features(
         self,
-        entity_rows: List[Dict[str, Any]],
-        features: List[str],
-    ) -> Dict[str, Any]:
+        entity_rows: list[dict[str, Any]],
+        features: list[str],
+    ) -> dict[str, Any]:
         """Get online features for entity rows."""
         try:
             feature_vector = self.store.get_online_features(
@@ -60,11 +58,11 @@ class FeatureMaterializer:
         except Exception as e:
             logger.error(f"Online feature retrieval failed: {e}")
             return {}
-    
+
     def get_historical_features(
         self,
         entity_df: pd.DataFrame,
-        features: List[str],
+        features: list[str],
     ) -> pd.DataFrame:
         """Get historical features for training."""
         try:
@@ -78,7 +76,7 @@ class FeatureMaterializer:
             return pd.DataFrame()
 
 
-def generate_sample_features() -> Dict[str, pd.DataFrame]:
+def generate_sample_features() -> dict[str, pd.DataFrame]:
     """Generate sample feature data for testing."""
     np.random.seed(42)
     n_merchants = 100
@@ -87,9 +85,9 @@ def generate_sample_features() -> Dict[str, pd.DataFrame]:
     n_upi_handles = 2000
     n_orders = 5000
     n_calls = 1000
-    
+
     now = datetime.utcnow()
-    
+
     # Merchant features
     merchants = pd.DataFrame({
         "merchant_id": [f"M{i:06d}" for i in range(n_merchants)],
@@ -117,7 +115,7 @@ def generate_sample_features() -> Dict[str, pd.DataFrame]:
         "event_timestamp": [now] * n_merchants,
         "created_timestamp": [now] * n_merchants,
     })
-    
+
     # Customer features
     customers = pd.DataFrame({
         "customer_id": [f"C{i:08d}" for i in range(n_customers)],
@@ -152,7 +150,7 @@ def generate_sample_features() -> Dict[str, pd.DataFrame]:
         "event_timestamp": [now] * n_customers,
         "created_timestamp": [now] * n_customers,
     })
-    
+
     # Device features
     devices = pd.DataFrame({
         "device_fingerprint": [f"dev_{i:010d}" for i in range(n_devices)],
@@ -177,7 +175,7 @@ def generate_sample_features() -> Dict[str, pd.DataFrame]:
         "event_timestamp": [now] * n_devices,
         "created_timestamp": [now] * n_devices,
     })
-    
+
     # UPI handle features
     upi_handles = pd.DataFrame({
         "upi_handle": [f"user{i}@upi" for i in range(n_upi_handles)],
@@ -196,7 +194,7 @@ def generate_sample_features() -> Dict[str, pd.DataFrame]:
         "event_timestamp": [now] * n_upi_handles,
         "created_timestamp": [now] * n_upi_handles,
     })
-    
+
     # Order features
     orders = pd.DataFrame({
         "order_id": [f"ORD{i:010d}" for i in range(n_orders)],
@@ -237,7 +235,7 @@ def generate_sample_features() -> Dict[str, pd.DataFrame]:
         "event_timestamp": [now] * n_orders,
         "created_timestamp": [now] * n_orders,
     })
-    
+
     # Call session features
     calls = pd.DataFrame({
         "call_session_id": [f"CALL{i:010d}" for i in range(n_calls)],
@@ -274,7 +272,7 @@ def generate_sample_features() -> Dict[str, pd.DataFrame]:
         "event_timestamp": [now] * n_calls,
         "created_timestamp": [now] * n_calls,
     })
-    
+
     return {
         "merchant": merchants,
         "customer": customers,
@@ -286,13 +284,13 @@ def generate_sample_features() -> Dict[str, pd.DataFrame]:
 
 
 def write_offline_features(
-    features: Dict[str, pd.DataFrame],
+    features: dict[str, pd.DataFrame],
     output_dir: str = "data/feast/offline"
 ):
     """Write feature DataFrames to parquet files."""
     import os
     os.makedirs(output_dir, exist_ok=True)
-    
+
     for name, df in features.items():
         path = f"{output_dir}/{name}_features.parquet"
         df.to_parquet(path, index=False)
@@ -300,16 +298,17 @@ def write_offline_features(
 
 
 def load_features_to_online_store(
-    features: Dict[str, pd.DataFrame],
+    features: dict[str, pd.DataFrame],
     redis_host: str = "localhost",
     redis_port: int = 6379,
 ):
     """Load features to Redis online store."""
-    import redis
     import json
-    
+
+    import redis
+
     r = redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
-    
+
     for name, df in features.items():
         table_name = f"{name}_features"
         for _, row in df.iterrows():
@@ -318,31 +317,31 @@ def load_features_to_online_store(
             if entity_col not in df.columns:
                 entity_col = f"{name}_fingerprint" if name == "device" else f"{name}_id"
             entity_key = row[entity_col]
-            
+
             # Prepare feature data (exclude metadata columns)
             feature_data = {
                 k: v for k, v in row.items()
                 if k not in ["event_timestamp", "created_timestamp", entity_col]
             }
-            
+
             # Store as hash
             r.hset(table_name, entity_key, json.dumps(feature_data, default=str))
-        
+
         logger.info(f"Loaded {len(df)} rows to Redis table {table_name}")
 
 
 if __name__ == "__main__":
     import hashlib
-    
+
     logging.basicConfig(level=logging.INFO)
-    
+
     # Generate sample features
     features = generate_sample_features()
-    
+
     # Write to offline store
     write_offline_features(features)
-    
+
     # Optionally load to online store
     # load_features_to_online_store(features)
-    
+
     print("Sample features generated successfully!")
