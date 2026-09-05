@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
 /* ==========================================================================
    AI Risk Manager — Design System Tokens & Shared Components
    ==========================================================================
@@ -121,7 +123,7 @@
   /* ---- Layout ---- */
   --container-max: 1120px;
   --nav-height: 56px;
-  --disclaimer-height: 36px;
+  --disclaimer-height: 0px;
 
   /* ---- Motion (single splurge: hero canvas; everything else is static) ---- */
   --duration-instant: 100ms;
@@ -279,37 +281,7 @@ p { margin: 0 0 var(--sp-4); }
 }
 
 
-/* ——————————————————————————————————————————————————————————————————————————
-   COMPONENT: DISCLAIMER BANNER
-   Persistent top-of-page notice: "Prototype — trained on synthetic data"
-   Always visible.  Not dismissible.
-   —————————————————————————————————————————————————————————————————————————— */
 
-.disclaimer-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 200;
-  height: var(--disclaimer-height);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
-  background: var(--status-warning-bg);
-  border-bottom: 1px solid var(--status-warning-border);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  color: var(--status-warning-fg);
-  padding: 0 var(--sp-4);
-  user-select: none;
-}
-
-.disclaimer-banner svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
 
 
 /* ——————————————————————————————————————————————————————————————————————————
@@ -905,4 +877,26 @@ p { margin: 0 0 var(--sp-4); }
   color: var(--fg-muted);
   min-width: 32px;
   text-align: right;
+}
+
+.monoton-regular {
+  font-family: "Monoton", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+#ambient-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.michroma-regular {
+  font-family: "Michroma", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }

@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Metrics Dashboard — AI Risk Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="tokens.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
   <style>
     .eval-section {
       background: var(--surface-base);
@@ -17,7 +21,7 @@
       padding: var(--sp-8);
       margin-bottom: var(--sp-12);
     }
-    
+
     .eval-title {
       font-size: var(--text-2xl);
       font-weight: var(--weight-bold);
@@ -46,12 +50,12 @@
       gap: var(--sp-4);
       margin-bottom: var(--sp-6);
     }
-    
+
     .metric-box {
       display: flex;
       flex-direction: column;
     }
-    
+
     .metric-val {
       font-family: var(--font-data);
       font-size: var(--text-3xl);
@@ -60,7 +64,7 @@
       line-height: 1;
       margin-bottom: var(--sp-1);
     }
-    
+
     .metric-lbl {
       font-size: var(--text-sm);
       color: var(--fg-muted);
@@ -73,7 +77,7 @@
       flex-direction: column;
       align-items: center;
     }
-    
+
     .cm-title {
       font-size: var(--text-sm);
       font-weight: var(--weight-semibold);
@@ -104,7 +108,7 @@
       justify-content: center;
       text-align: center;
     }
-    
+
     .cm-header {
       background: var(--surface-subtle);
       font-size: var(--text-xs);
@@ -118,16 +122,26 @@
       font-weight: var(--weight-bold);
       color: var(--fg-default);
     }
-    
+
     .cm-label {
       font-size: var(--text-xs);
       color: var(--fg-muted);
       margin-top: var(--sp-1);
     }
 
-    .cm-true-pos { background: rgba(30, 169, 124, 0.1); color: var(--status-success); }
-    .cm-true-neg { background: rgba(30, 169, 124, 0.03); }
-    .cm-error { background: rgba(220, 38, 38, 0.1); color: var(--status-danger); }
+    .cm-true-pos {
+      background: rgba(30, 169, 124, 0.1);
+      color: var(--status-success);
+    }
+
+    .cm-true-neg {
+      background: rgba(30, 169, 124, 0.03);
+    }
+
+    .cm-error {
+      background: rgba(220, 38, 38, 0.1);
+      color: var(--status-danger);
+    }
 
     /* Fraud types list */
     .fraud-types-list {
@@ -145,7 +159,7 @@
       flex-direction: column;
       gap: var(--sp-3);
     }
-    
+
     @media (min-width: 640px) {
       .fraud-type-card {
         flex-direction: row;
@@ -153,30 +167,30 @@
         justify-content: space-between;
       }
     }
-    
+
     .ft-info {
       flex: 1;
     }
-    
+
     .ft-header {
       display: flex;
       align-items: center;
       gap: var(--sp-3);
       margin-bottom: var(--sp-2);
     }
-    
+
     .ft-title {
       font-size: var(--text-md);
       font-weight: var(--weight-semibold);
       color: var(--fg-default);
     }
-    
+
     .ft-desc {
       font-size: var(--text-sm);
       color: var(--fg-muted);
       line-height: var(--leading-relaxed);
     }
-    
+
     .ft-count-box {
       display: flex;
       flex-direction: column;
@@ -190,7 +204,7 @@
         text-align: right;
       }
     }
-    
+
     .ft-count {
       font-family: var(--font-data);
       font-size: var(--text-2xl);
@@ -198,13 +212,13 @@
       color: var(--fg-default);
       line-height: 1;
     }
-    
+
     .ft-count-label {
       font-size: var(--text-xs);
       color: var(--fg-muted);
       margin-top: var(--sp-1);
     }
-    
+
     .not-implemented {
       opacity: 0.6;
       background: var(--surface-subtle);
@@ -223,13 +237,13 @@
       align-items: center;
       transition: background 0.15s ease, color 0.15s ease;
     }
-    
+
     a.badge-unbuilt:hover {
       background: var(--accent-subtle-bg);
       color: var(--accent-default);
       text-decoration: underline;
     }
-    
+
     /* Loading state */
     .loader-container {
       display: flex;
@@ -239,7 +253,7 @@
       padding: var(--sp-12) 0;
       color: var(--fg-muted);
     }
-    
+
     .spinner {
       width: 24px;
       height: 24px;
@@ -251,22 +265,16 @@
     }
   </style>
 </head>
-<body>
 
-  <!-- Disclaimer banner -->
-  <div class="disclaimer-banner" role="status">
-    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5a.75.75 0 011.5 0v4a.75.75 0 01-1.5 0v-4zm.75 7a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
-    </svg>
-    Prototype — trained on synthetic data, not validated for production use
-  </div>
+<body>
 
   <!-- Navbar -->
   <nav class="navbar" role="navigation" aria-label="Main navigation">
     <a href="index.html" class="navbar__brand">
       <svg class="navbar__logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2"/>
-        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2" />
+        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
       </svg>
       <span class="navbar__wordmark">AI Risk Manager</span>
     </a>
@@ -276,12 +284,13 @@
       <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
       <li><a href="dashboard.html" class="navbar__link" aria-current="page">Dashboard</a></li>
       <li><a href="concept.html" class="navbar__link">Roadmap Concepts</a></li>
-      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+      <li><a href="api-playground.html" class="navbar__link">API Playground</a></li>
     </ul>
 
     <button class="navbar__menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
       <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z"/>
+        <path fill-rule="evenodd"
+          d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" />
       </svg>
     </button>
 
@@ -290,24 +299,29 @@
       <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
       <li><a href="dashboard.html" class="navbar__link" aria-current="page">Dashboard</a></li>
       <li><a href="concept.html" class="navbar__link">Roadmap Concepts</a></li>
-      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+      <li><a href="api-playground.html" class="navbar__link">API Playground</a></li>
     </ul>
   </nav>
+
+  
+  <!-- Ambient Particle Canvas -->
+  <canvas id="ambient-canvas"></canvas>
 
   <div class="page-shell">
     <main class="page-shell__main">
       <div class="container">
-        
+
         <!-- EVALUATION SECTION (Given visual weight) -->
         <section class="eval-section">
           <h2 class="eval-title">Model Evaluation: Held-out Test Set</h2>
-          
+
           <div class="eval-grid">
             <div>
               <p class="text-muted" style="margin-bottom: var(--sp-6); max-width: 500px; line-height: 1.6;">
-                Performance metrics computed from the 20% held-out test split (10,101 transactions). The detector achieves perfect recall on this dataset without falsely blocking a single legitimate transaction.
+                Performance metrics computed from the 20% held-out test split (10,101 transactions). The detector
+                achieves perfect recall on this dataset without falsely blocking a single legitimate transaction.
               </p>
-              
+
               <div class="metric-group">
                 <div class="metric-box">
                   <span class="metric-val">100<span style="font-size: 0.6em;">%</span></span>
@@ -322,22 +336,25 @@
                   <span class="metric-lbl">False Positives</span>
                 </div>
               </div>
-              
+
               <p class="text-sm" style="color: var(--status-success); font-weight: var(--weight-medium);">
-                <svg viewBox="0 0 20 20" fill="currentColor" style="width: 16px; height: 16px; display: inline; vertical-align: text-bottom; margin-right: 4px;" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"/>
+                <svg viewBox="0 0 20 20" fill="currentColor"
+                  style="width: 16px; height: 16px; display: inline; vertical-align: text-bottom; margin-right: 4px;"
+                  aria-hidden="true">
+                  <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" />
                 </svg>
                 Zero legitimate customer impact in test evaluation
               </p>
             </div>
-            
+
             <div class="cm-wrapper">
               <div class="cm-title">Confusion Matrix (N = 10,101)</div>
               <div class="cm-grid">
                 <div class="cm-cell" style="background: transparent;"></div>
                 <div class="cm-cell cm-header">Predicted<br>Legit</div>
                 <div class="cm-cell cm-header">Predicted<br>Fraud</div>
-                
+
                 <div class="cm-cell cm-header">Actual<br>Legit</div>
                 <div class="cm-cell cm-true-neg">
                   <span class="cm-value">10,000</span>
@@ -347,7 +364,7 @@
                   <span class="cm-value">0</span>
                   <span class="cm-label">False Positive</span>
                 </div>
-                
+
                 <div class="cm-cell cm-header">Actual<br>Fraud</div>
                 <div class="cm-cell cm-error">
                   <span class="cm-value">0</span>
@@ -364,22 +381,25 @@
 
         <!-- FRAUD TYPES SECTION -->
         <section>
-          <h2 style="font-size: var(--text-xl); font-weight: var(--weight-bold); margin-bottom: var(--sp-6);">Fraud Type Breakdown</h2>
-          
+          <h2 style="font-size: var(--text-xl); font-weight: var(--weight-bold); margin-bottom: var(--sp-6);">Fraud Type
+            Breakdown</h2>
+
           <div id="loading-state" class="loader-container">
             <div class="spinner"></div>
             <div>Fetching fraud telemetry...</div>
           </div>
-          
-          <div id="error-state" class="empty-state empty-state--error" style="display: none; padding: var(--sp-8) 0; margin-bottom: var(--sp-8);">
-            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M15 9l-6 6M9 9l6 6"/>
+
+          <div id="error-state" class="empty-state empty-state--error"
+            style="display: none; padding: var(--sp-8) 0; margin-bottom: var(--sp-8);">
+            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M15 9l-6 6M9 9l6 6" />
             </svg>
             <p class="empty-state__title">Failed to load statistics</p>
             <p class="empty-state__description" id="error-message">Unable to connect to the telemetry service.</p>
           </div>
-          
+
           <div id="stats-container" class="fraud-types-list" style="display: none;">
             <!-- Rendered via JS -->
           </div>
@@ -390,12 +410,16 @@
 
     <footer class="site-footer">
       <div class="container">
-        <p><strong>AI Risk Manager</strong> &mdash; Built by Team Suyansh Khanna for <strong>Razorpay Buildathon 2026</strong>. <a href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub Repository</a>. Prototype trained on synthetic data &mdash; not for production use.</p>
+        <p><strong>AI Risk Manager</strong> Built by <span class="michroma-regular">suyansh khanna</span> . <a
+            href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub
+            Repository</a>.</p>
       </div>
     </footer>
   </div>
 
   <script src="shared.js"></script>
   <script src="dashboard.js"></script>
+  <script src="particles.js"></script>
 </body>
+
 </html>

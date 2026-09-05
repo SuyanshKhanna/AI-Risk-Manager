@@ -6,11 +6,11 @@ class AmbientParticles {
     
     this.particles = [];
     this.mouse = { x: -1000, y: -1000 };
-    /* Using the accent-default color (#1e2a4a) with low opacity */
+    /* More vibrant theme colors for the comet effect */
     this.colors = [
-      'rgba(30, 42, 74, 0.08)', 
-      'rgba(30, 42, 74, 0.12)', 
-      'rgba(30, 42, 74, 0.05)'
+      'rgba(30, 42, 74, 0.5)',   /* Deep navy accent */
+      'rgba(25, 103, 210, 0.4)', /* Info blue */
+      'rgba(30, 42, 74, 0.3)'
     ];
     
     this.init();
@@ -58,7 +58,9 @@ class AmbientParticles {
   }
 
   animate() {
-    this.ctx.clearRect(0, 0, this.width, this.height);
+    // Create the fading 'comet' effect instead of clearing the canvas
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    this.ctx.fillRect(0, 0, this.width, this.height);
     
     // Update and draw particles
     for (let i = 0; i < this.particles.length; i++) {

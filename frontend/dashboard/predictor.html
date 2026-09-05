@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Live Predictor — AI Risk Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="tokens.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
   <style>
     .predictor-layout {
       display: grid;
@@ -22,7 +26,7 @@
         grid-template-columns: 2fr 1fr;
         gap: var(--sp-8);
       }
-      
+
       .result-panel-sticky {
         position: sticky;
         top: calc(var(--disclaimer-height) + var(--nav-height) + var(--sp-8));
@@ -36,32 +40,32 @@
       padding-bottom: var(--sp-2);
       border-bottom: 1px solid var(--border-subtle);
     }
-    
+
     .form-checkbox-group {
       display: grid;
       grid-template-columns: 1fr;
       gap: var(--sp-3);
     }
-    
+
     @media (min-width: 640px) {
       .form-checkbox-group {
         grid-template-columns: 1fr 1fr;
       }
     }
-    
+
     .result-score {
       font-size: var(--text-3xl);
       font-weight: var(--weight-bold);
       line-height: 1;
       margin-bottom: var(--sp-1);
     }
-    
+
     .shap-list {
       list-style: none;
       padding: 0;
       margin: 0;
     }
-    
+
     .shap-item {
       display: flex;
       align-items: flex-start;
@@ -71,18 +75,18 @@
       font-size: var(--text-sm);
       color: var(--fg-muted);
     }
-    
+
     .shap-item:last-child {
       border-bottom: none;
     }
-    
+
     .shap-item svg {
       flex-shrink: 0;
       width: 16px;
       height: 16px;
       margin-top: 2px;
     }
-    
+
     /* Loader for button */
     .btn-loader {
       display: none;
@@ -93,31 +97,32 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-    
+
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
-    
-    .is-loading .btn-text { display: none; }
-    .is-loading .btn-loader { display: block; }
+
+    .is-loading .btn-text {
+      display: none;
+    }
+
+    .is-loading .btn-loader {
+      display: block;
+    }
   </style>
 </head>
-<body>
 
-  <!-- Disclaimer banner -->
-  <div class="disclaimer-banner" role="status">
-    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5a.75.75 0 011.5 0v4a.75.75 0 01-1.5 0v-4zm.75 7a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
-    </svg>
-    Prototype — trained on synthetic data, not validated for production use
-  </div>
+<body>
 
   <!-- Navbar -->
   <nav class="navbar" role="navigation" aria-label="Main navigation">
     <a href="index.html" class="navbar__brand">
       <svg class="navbar__logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2"/>
-        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2" />
+        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
       </svg>
       <span class="navbar__wordmark">AI Risk Manager</span>
     </a>
@@ -127,12 +132,13 @@
       <li><a href="predictor.html" class="navbar__link" aria-current="page">Live Predictor</a></li>
       <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
       <li><a href="concept.html" class="navbar__link">Roadmap Concepts</a></li>
-      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+      <li><a href="api-playground.html" class="navbar__link">API Playground</a></li>
     </ul>
 
     <button class="navbar__menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
       <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z"/>
+        <path fill-rule="evenodd"
+          d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" />
       </svg>
     </button>
 
@@ -141,32 +147,38 @@
       <li><a href="predictor.html" class="navbar__link" aria-current="page">Live Predictor</a></li>
       <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
       <li><a href="concept.html" class="navbar__link">Roadmap Concepts</a></li>
-      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+      <li><a href="api-playground.html" class="navbar__link">API Playground</a></li>
     </ul>
   </nav>
+
+  
+  <!-- Ambient Particle Canvas -->
+  <canvas id="ambient-canvas"></canvas>
 
   <div class="page-shell">
     <main class="page-shell__main">
       <div class="container">
-        
+
         <h1 style="margin-bottom: var(--sp-2);">Live Predictor</h1>
         <p class="text-muted" style="max-width: 600px; margin-bottom: var(--sp-10);">
-          Submit a transaction to the ML pipeline and see the real-time fraud risk score and plain-language explanation of the decision.
+          Submit a transaction to the ML pipeline and see the real-time fraud risk score and plain-language explanation
+          of the decision.
         </p>
 
         <div class="predictor-layout">
-          
+
           <!-- LEFT: FORM -->
           <div class="card">
             <form id="predictor-form" novalidate>
-              
+
               <h2 class="form-section-title">Identifiers</h2>
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="txn_id">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Transaction identifier</span>
-                      <span class="tooltip-content">A unique reference string generated by the client app for this payment attempt.</span>
+                      <span class="tooltip-content">A unique reference string generated by the client app for this
+                        payment attempt.</span>
                     </span>
                   </label>
                   <input type="text" id="txn_id" name="txn_id" class="form-input" value="TXN_20260905_001" required>
@@ -181,13 +193,14 @@
                   <input type="number" id="amount_paise" name="amount_paise" class="form-input" value="45000" required>
                 </div>
               </div>
-              
+
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="merchant_id">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Merchant reference</span>
-                      <span class="tooltip-content">The unique system identifier for the business receiving the payment.</span>
+                      <span class="tooltip-content">The unique system identifier for the business receiving the
+                        payment.</span>
                     </span>
                   </label>
                   <input type="text" id="merchant_id" name="merchant_id" class="form-input" value="M_test_999" required>
@@ -196,7 +209,8 @@
                   <label class="form-label" for="customer_id">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Customer reference</span>
-                      <span class="tooltip-content">The unique system identifier for the user initiating the payment.</span>
+                      <span class="tooltip-content">The unique system identifier for the user initiating the
+                        payment.</span>
                     </span>
                   </label>
                   <input type="text" id="customer_id" name="customer_id" class="form-input" value="C_test_111" required>
@@ -208,19 +222,23 @@
                   <label class="form-label" for="device_fingerprint">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Device fingerprint</span>
-                      <span class="tooltip-content">A hash of the user's hardware and software configuration, used to track device history.</span>
+                      <span class="tooltip-content">A hash of the user's hardware and software configuration, used to
+                        track device history.</span>
                     </span>
                   </label>
-                  <input type="text" id="device_fingerprint" name="device_fingerprint" class="form-input" value="dev_emulator1" required>
+                  <input type="text" id="device_fingerprint" name="device_fingerprint" class="form-input"
+                    value="dev_emulator1" required>
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="upi_handle">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Customer UPI handle</span>
-                      <span class="tooltip-content">The Virtual Payment Address (VPA) of the user, e.g., name@bank.</span>
+                      <span class="tooltip-content">The Virtual Payment Address (VPA) of the user, e.g.,
+                        name@bank.</span>
                     </span>
                   </label>
-                  <input type="text" id="upi_handle" name="upi_handle" class="form-input" value="user_new@bank" required>
+                  <input type="text" id="upi_handle" name="upi_handle" class="form-input" value="user_new@bank"
+                    required>
                 </div>
               </div>
 
@@ -230,11 +248,13 @@
                   <label class="form-label" for="velocity_5min">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Transactions in last 5 minutes</span>
-                      <span class="tooltip-content">How many times this customer has paid this merchant in the past 5 minutes. High bursts can indicate automated fraud.</span>
+                      <span class="tooltip-content">How many times this customer has paid this merchant in the past 5
+                        minutes. High bursts can indicate automated fraud.</span>
                     </span>
                   </label>
                   <div class="range-wrap">
-                    <input type="range" id="velocity_5min" name="velocity_5min" class="range-input" min="0" max="50" value="12">
+                    <input type="range" id="velocity_5min" name="velocity_5min" class="range-input" min="0" max="50"
+                      value="12">
                     <span class="range-val" id="velocity_5min_val">12</span>
                   </div>
                 </div>
@@ -242,11 +262,13 @@
                   <label class="form-label" for="velocity_1hr">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Transactions in last hour</span>
-                      <span class="tooltip-content">How many times this customer has paid this merchant in the past hour.</span>
+                      <span class="tooltip-content">How many times this customer has paid this merchant in the past
+                        hour.</span>
                     </span>
                   </label>
                   <div class="range-wrap">
-                    <input type="range" id="velocity_1hr" name="velocity_1hr" class="range-input" min="0" max="100" value="25">
+                    <input type="range" id="velocity_1hr" name="velocity_1hr" class="range-input" min="0" max="100"
+                      value="25">
                     <span class="range-val" id="velocity_1hr_val">25</span>
                   </div>
                 </div>
@@ -257,11 +279,13 @@
                   <label class="form-label" for="device_emulator_score">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Emulator probability score</span>
-                      <span class="tooltip-content">A score from 0.0 to 1.0 indicating how likely the device is a virtual emulator or rooted Android environment.</span>
+                      <span class="tooltip-content">A score from 0.0 to 1.0 indicating how likely the device is a
+                        virtual emulator or rooted Android environment.</span>
                     </span>
                   </label>
                   <div class="range-wrap">
-                    <input type="range" id="device_emulator_score" name="device_emulator_score" class="range-input" min="0" max="1" step="0.01" value="0.85">
+                    <input type="range" id="device_emulator_score" name="device_emulator_score" class="range-input"
+                      min="0" max="1" step="0.01" value="0.85">
                     <span class="range-val" id="device_emulator_score_val">0.85</span>
                   </div>
                 </div>
@@ -269,11 +293,13 @@
                   <label class="form-label" for="vpn_probability">
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">VPN or proxy probability</span>
-                      <span class="tooltip-content">A score from 0.0 to 1.0 indicating the likelihood that the originating IP address belongs to a datacenter or known VPN.</span>
+                      <span class="tooltip-content">A score from 0.0 to 1.0 indicating the likelihood that the
+                        originating IP address belongs to a datacenter or known VPN.</span>
                     </span>
                   </label>
                   <div class="range-wrap">
-                    <input type="range" id="vpn_probability" name="vpn_probability" class="range-input" min="0" max="1" step="0.01" value="0.70">
+                    <input type="range" id="vpn_probability" name="vpn_probability" class="range-input" min="0" max="1"
+                      step="0.01" value="0.70">
                     <span class="range-val" id="vpn_probability_val">0.70</span>
                   </div>
                 </div>
@@ -286,42 +312,48 @@
                     <input type="checkbox" name="settlement_verified" class="checkbox-input" value="1" checked>
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Merchant settlement verified</span>
-                      <span class="tooltip-content">Whether the payment gateway has successfully returned a SUCCESS callback for this merchant in the past.</span>
+                      <span class="tooltip-content">Whether the payment gateway has successfully returned a SUCCESS
+                        callback for this merchant in the past.</span>
                     </span>
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" name="is_night" class="checkbox-input" value="1" checked>
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Night hours transaction</span>
-                      <span class="tooltip-content">Whether this transaction occurred between 10 PM and 6 AM, a historically high-risk window for social engineering.</span>
+                      <span class="tooltip-content">Whether this transaction occurred between 10 PM and 6 AM, a
+                        historically high-risk window for social engineering.</span>
                     </span>
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" name="new_merchant" class="checkbox-input" value="1" checked>
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">First payment to merchant</span>
-                      <span class="tooltip-content">Is this the first time this specific customer is paying this specific merchant?</span>
+                      <span class="tooltip-content">Is this the first time this specific customer is paying this
+                        specific merchant?</span>
                     </span>
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" name="new_device" class="checkbox-input" value="1" checked>
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">First time using device</span>
-                      <span class="tooltip-content">Is this the first time this customer has initiated a transaction from this specific device fingerprint?</span>
+                      <span class="tooltip-content">Is this the first time this customer has initiated a transaction
+                        from this specific device fingerprint?</span>
                     </span>
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" name="qr_mismatch" class="checkbox-input" value="1" checked>
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">QR code details mismatch</span>
-                      <span class="tooltip-content">Does the perceptual hash of the scanned QR code diverge from the merchant's registered QR hash?</span>
+                      <span class="tooltip-content">Does the perceptual hash of the scanned QR code diverge from the
+                        merchant's registered QR hash?</span>
                     </span>
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" name="remote_access_app" class="checkbox-input" value="1" checked>
                     <span class="tooltip-wrap">
                       <span class="tooltip-trigger" tabindex="0">Screen-sharing app active</span>
-                      <span class="tooltip-content">Was a known remote desktop or screen-sharing application (like AnyDesk) running during the transaction?</span>
+                      <span class="tooltip-content">Was a known remote desktop or screen-sharing application (like
+                        AnyDesk) running during the transaction?</span>
                     </span>
                   </label>
                 </div>
@@ -339,22 +371,25 @@
           <!-- RIGHT: RESULT -->
           <div class="result-panel-sticky">
             <div class="card" id="result-card">
-              
+
               <!-- Empty state before submission -->
               <div id="result-empty" class="empty-state" style="padding: var(--sp-8) 0; margin: 0;">
-                <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/>
-                  <path d="M3 9h18M9 3v18"/>
+                <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                  aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18M9 3v18" />
                 </svg>
                 <p class="empty-state__title">No transaction scored</p>
                 <p class="empty-state__description">Submit the form to see the fraud risk evaluation.</p>
               </div>
-              
+
               <!-- Error state -->
-              <div id="result-error" class="empty-state empty-state--error" style="display: none; padding: var(--sp-8) 0; margin: 0;">
-                <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M15 9l-6 6M9 9l6 6"/>
+              <div id="result-error" class="empty-state empty-state--error"
+                style="display: none; padding: var(--sp-8) 0; margin: 0;">
+                <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                  aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M15 9l-6 6M9 9l6 6" />
                 </svg>
                 <p class="empty-state__title">Prediction failed</p>
                 <p class="empty-state__description" id="error-message">Unable to connect to the prediction service.</p>
@@ -363,17 +398,17 @@
               <!-- Success state -->
               <div id="result-success" style="display: none;">
                 <h3 class="card__title" style="margin-bottom: var(--sp-4);">Detection Result</h3>
-                
+
                 <div style="margin-bottom: var(--sp-6); display: flex; align-items: baseline; gap: var(--sp-3);">
                   <div class="result-score data-figure" id="score-value">0%</div>
                   <div class="text-subtle">fraud probability</div>
                 </div>
-                
+
                 <div style="margin-bottom: var(--sp-6);">
                   <span id="action-badge" class="status-badge">UNKNOWN</span>
                   <p class="text-sm text-muted" id="action-desc" style="margin-top: var(--sp-2);">—</p>
                 </div>
-                
+
                 <div style="border-top: 1px solid var(--border-subtle); padding-top: var(--sp-4);">
                   <h4 style="font-size: var(--text-sm); margin-bottom: var(--sp-3);">Why this decision was made:</h4>
                   <ul class="shap-list" id="reasons-list">
@@ -381,10 +416,10 @@
                   </ul>
                 </div>
               </div>
-              
+
             </div>
           </div>
-          
+
         </div>
 
       </div>
@@ -392,12 +427,16 @@
 
     <footer class="site-footer">
       <div class="container">
-        <p><strong>AI Risk Manager</strong> &mdash; Built by Team Suyansh Khanna for <strong>Razorpay Buildathon 2026</strong>. <a href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub Repository</a>. Prototype trained on synthetic data &mdash; not for production use.</p>
+        <p><strong>AI Risk Manager</strong> &mdash; Built by <span class="michroma-regular">suyansh khanna</span> for . <a
+            href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub
+            Repository</a>.</p>
       </div>
     </footer>
   </div>
 
   <script src="shared.js"></script>
   <script src="predictor.js"></script>
+  <script src="particles.js"></script>
 </body>
+
 </html>

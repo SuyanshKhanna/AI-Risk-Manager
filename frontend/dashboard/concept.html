@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AI Risk Manager — Not-Yet-Implemented Fraud Protection System Concept Specifications">
+  <meta name="description"
+    content="AI Risk Manager — Not-Yet-Implemented Fraud Protection System Concept Specifications">
   <title>Fraud Protection Concepts — AI Risk Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="tokens.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
   <style>
     /* Concept page layout */
     .concept-layout {
@@ -421,22 +426,16 @@
     }
   </style>
 </head>
-<body>
 
-  <!-- Global Disclaimer banner -->
-  <div class="disclaimer-banner" role="status">
-    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5a.75.75 0 011.5 0v4a.75.75 0 01-1.5 0v-4zm.75 7a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
-    </svg>
-    Prototype — trained on synthetic data, not validated for production use
-  </div>
+<body>
 
   <!-- Navbar -->
   <nav class="navbar" role="navigation" aria-label="Main navigation">
     <a href="index.html" class="navbar__brand">
       <svg class="navbar__logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2"/>
-        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2" />
+        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
       </svg>
       <span class="navbar__wordmark">AI Risk Manager</span>
     </a>
@@ -446,12 +445,13 @@
       <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
       <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
       <li><a href="concept.html" class="navbar__link" aria-current="page">Roadmap Concepts</a></li>
-      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+      <li><a href="api-playground.html" class="navbar__link">API Playground</a></li>
     </ul>
 
     <button class="navbar__menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
       <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z"/>
+        <path fill-rule="evenodd"
+          d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" />
       </svg>
     </button>
 
@@ -460,16 +460,20 @@
       <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
       <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
       <li><a href="concept.html" class="navbar__link" aria-current="page">Roadmap Concepts</a></li>
-      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+      <li><a href="api-playground.html" class="navbar__link">API Playground</a></li>
     </ul>
   </nav>
+
+  
+  <!-- Ambient Particle Canvas -->
+  <canvas id="ambient-canvas"></canvas>
 
   <div class="page-shell">
     <main class="page-shell__main">
       <div class="container">
-        
+
         <div class="concept-layout">
-          
+
           <!-- LEFT SIDEBAR: CONCEPT SELECTOR -->
           <aside class="concept-sidebar" aria-label="Fraud concepts selection">
             <div class="sidebar-heading">Research Specifications</div>
@@ -478,7 +482,8 @@
             </ul>
 
             <div class="sidebar-footer-note">
-              <strong>Non-operational notice:</strong> All systems listed above represent research designs. None are enabled for live payment evaluation.
+              <strong>Non-operational notice:</strong> All systems listed above represent research designs. None are
+              enabled for live payment evaluation.
             </div>
           </aside>
 
@@ -488,13 +493,17 @@
             <!-- 1. MANDATORY PERSISTENT CONCEPT BANNER -->
             <div class="concept-status-banner" role="alert" aria-live="polite">
               <svg class="concept-status-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd"
+                  d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                  clip-rule="evenodd" />
               </svg>
               <div class="concept-status-body">
                 <div class="concept-status-badge">ARCHITECTURAL CONCEPT — NOT YET IMPLEMENTED</div>
                 <div class="concept-status-title">This fraud protection system does not run in production</div>
                 <div class="concept-status-desc">
-                  This page documents a planned detection architecture under active research. It does not score live transactions, evaluate API payloads, or enforce blocking decisions. Telemetry requirements, model structures, and data flows represent the target implementation specification.
+                  This page documents a planned detection architecture under active research. It does not score live
+                  transactions, evaluate API payloads, or enforce blocking decisions. Telemetry requirements, model
+                  structures, and data flows represent the target implementation specification.
                 </div>
               </div>
             </div>
@@ -503,7 +512,7 @@
             <header class="concept-header">
               <span class="concept-category-tag" id="c-category">Category</span>
               <h1 class="concept-title" id="c-title">Fraud Concept Title</h1>
-              
+
               <div class="concept-meta-grid">
                 <div class="meta-box">
                   <span class="meta-lbl">Target Metric</span>
@@ -564,7 +573,7 @@
             <!-- 5. REQUIRED DATA & TELEMETRY -->
             <section class="spec-section">
               <h2 class="spec-section-title">3. What Data It Would Need</h2>
-              
+
               <div class="spec-block">
                 <h3 class="spec-block-title">Ingested Data Streams & Telemetry</h3>
                 <ul class="data-list" id="c-data-streams"></ul>
@@ -584,7 +593,7 @@
             <!-- 6. WHY NOT IMPLEMENTED & ROADMAP -->
             <section class="spec-section">
               <h2 class="spec-section-title">4. Why Not Implemented & Path to Production</h2>
-              
+
               <div class="spec-block">
                 <h3 class="spec-block-title">Engineering Rationale for MVP Deferral</h3>
                 <p class="spec-block-text" id="c-why-unimplemented">—</p>
@@ -604,7 +613,9 @@
 
     <footer class="site-footer">
       <div class="container">
-        <p><strong>AI Risk Manager</strong> &mdash; Built by Team Suyansh Khanna for <strong>Razorpay Buildathon 2026</strong>. <a href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub Repository</a>. Prototype trained on synthetic data &mdash; not for production use.</p>
+        <p><strong>AI Risk Manager</strong> &mdash; Built by <span class="michroma-regular">suyansh khanna</span>. <a
+            href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub
+            Repository</a>.</p>
       </div>
     </footer>
   </div>
@@ -612,5 +623,7 @@
   <script src="shared.js"></script>
   <script src="concept_data.js"></script>
   <script src="concept.js"></script>
+  <script src="particles.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI Risk Manager — Interactive API Playground for UPI Fraud Detection endpoints">
+  <title>API Playground — AI Risk Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <style>
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .playground-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--sp-6);
+      align-items: start;
+      margin-top: var(--sp-6);
+      margin-bottom: var(--sp-12);
+    }
+
+    @media (min-width: 1100px) {
+      .playground-layout {
+        grid-template-columns: 320px 1fr;
+        gap: var(--sp-8);
+      }
+    }
+
+    /* ── Sidebar ────────────────────────────────────────────────── */
+    .pg-sidebar {
+      background: var(--surface-base);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: var(--sp-5);
+    }
+
+    @media (min-width: 1100px) {
+      .pg-sidebar {
+        position: sticky;
+        top: calc(var(--nav-height) + var(--sp-4));
+      }
+    }
+
+    .pg-sidebar-heading {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--sp-3);
+      padding: 0 var(--sp-1);
+    }
+
+    .endpoint-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-1);
+    }
+
+    .endpoint-item button {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: var(--sp-2) var(--sp-3);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--fg-default);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .endpoint-item button:hover {
+      background: var(--surface-sunken);
+    }
+
+    .endpoint-item button.active {
+      background: var(--accent-subtle-bg);
+      border-color: var(--border-default);
+      font-weight: var(--weight-semibold);
+      color: var(--accent-default);
+    }
+
+    .endpoint-item button:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+      border-color: var(--accent-default);
+    }
+
+    .endpoint-method {
+      font-family: var(--font-data);
+      font-size: 10px;
+      font-weight: var(--weight-bold);
+      letter-spacing: 0.05em;
+      padding: 1px 5px;
+      border-radius: 3px;
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+
+    .method-get {
+      background: rgba(34, 139, 34, 0.15);
+      color: #22a22a;
+    }
+
+    .method-post {
+      background: rgba(25, 103, 210, 0.15);
+      color: var(--accent-default);
+    }
+
+    .endpoint-path {
+      font-family: var(--font-data);
+      font-size: var(--text-xs);
+      color: var(--fg-muted);
+    }
+
+    .endpoint-item button.active .endpoint-path {
+      color: var(--accent-default);
+      opacity: 0.8;
+    }
+
+    .pg-sidebar-note {
+      margin-top: var(--sp-4);
+      padding-top: var(--sp-3);
+      border-top: 1px solid var(--border-subtle);
+      font-size: var(--text-xs);
+      color: var(--fg-muted);
+      line-height: var(--leading-relaxed);
+    }
+
+    .pg-sidebar-note code {
+      font-family: var(--font-data);
+      font-size: 10px;
+      background: var(--surface-sunken);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    /* ── Main pane ──────────────────────────────────────────────── */
+    .pg-main {
+      min-width: 0;
+    }
+
+    /* Endpoint header card */
+    .ep-header {
+      background: var(--surface-base);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: var(--sp-6);
+      margin-bottom: var(--sp-5);
+    }
+
+    .ep-method-badge {
+      font-family: var(--font-data);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      letter-spacing: 0.04em;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+      margin-right: var(--sp-2);
+      vertical-align: middle;
+    }
+
+    .ep-url {
+      font-family: var(--font-data);
+      font-size: var(--text-base);
+      color: var(--fg-default);
+      vertical-align: middle;
+      word-break: break-all;
+    }
+
+    .ep-description {
+      font-size: var(--text-sm);
+      color: var(--fg-muted);
+      line-height: var(--leading-relaxed);
+      margin-top: var(--sp-3);
+    }
+
+    /* Scenario selector */
+    .scenario-strip {
+      display: flex;
+      gap: var(--sp-2);
+      flex-wrap: wrap;
+      margin-bottom: var(--sp-5);
+    }
+
+    .scenario-btn {
+      font-family: var(--font-body);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      padding: var(--sp-1) var(--sp-3);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-sm);
+      background: var(--surface-base);
+      color: var(--fg-default);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .scenario-btn:hover {
+      border-color: var(--accent-default);
+      color: var(--accent-default);
+    }
+
+    .scenario-btn.active {
+      background: var(--accent-default);
+      color: var(--fg-on-accent);
+      border-color: var(--accent-default);
+    }
+
+    .scenario-btn:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    /* Request / Response panels */
+    .rr-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--sp-5);
+    }
+
+    @media (min-width: 768px) {
+      .rr-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .rr-panel {
+      background: var(--surface-base);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .rr-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .rr-panel-body {
+      padding: var(--sp-4);
+      flex: 1;
+      overflow: auto;
+    }
+
+    .code-block {
+      font-family: var(--font-data);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--fg-default);
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    /* Send button */
+    .send-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      margin-bottom: var(--sp-5);
+    }
+
+    .btn-send {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      padding: var(--sp-2) var(--sp-5);
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent-default);
+      color: var(--fg-on-accent);
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn-send:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-send:active {
+      transform: scale(0.98);
+    }
+
+    .btn-send:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-send .spinner {
+      display: none;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .btn-send.loading .spinner {
+      display: inline-block;
+    }
+
+    .btn-send.loading .btn-label {
+      opacity: 0.7;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .latency-tag {
+      font-family: var(--font-data);
+      font-size: var(--text-xs);
+      color: var(--fg-muted);
+    }
+
+    /* Response status indicators */
+    .response-status {
+      font-family: var(--font-data);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    .status-200 {
+      background: rgba(34, 139, 34, 0.12);
+      color: #22a22a;
+    }
+
+    .status-error {
+      background: rgba(210, 50, 50, 0.12);
+      color: var(--status-danger-fg, #d23232);
+    }
+
+    /* Verdict card */
+    .verdict-card {
+      background: var(--surface-sunken);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--sp-5);
+      margin-top: var(--sp-5);
+    }
+
+    .verdict-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+      margin-bottom: var(--sp-4);
+    }
+
+    .verdict-score {
+      font-family: var(--font-data);
+      font-size: var(--text-3xl);
+      font-weight: var(--weight-bold);
+      line-height: 1;
+    }
+
+    .verdict-score.safe { color: var(--status-safe-fg, #22a22a); }
+    .verdict-score.warning { color: var(--status-warning-fg, #c48800); }
+    .verdict-score.danger { color: var(--status-danger-fg, #d23232); }
+
+    .verdict-action {
+      font-family: var(--font-data);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-bold);
+      letter-spacing: 0.03em;
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+    }
+
+    .action-allow {
+      background: rgba(34, 139, 34, 0.12);
+      color: #22a22a;
+    }
+
+    .action-challenge {
+      background: rgba(196, 136, 0, 0.12);
+      color: #c48800;
+    }
+
+    .action-block {
+      background: rgba(210, 50, 50, 0.12);
+      color: #d23232;
+    }
+
+    .verdict-reasons {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-1);
+    }
+
+    .verdict-reasons li {
+      font-size: var(--text-xs);
+      color: var(--fg-muted);
+      line-height: var(--leading-normal);
+      padding-left: var(--sp-3);
+      position: relative;
+    }
+
+    .verdict-reasons li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent-default);
+    }
+
+    .shap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: var(--sp-2);
+      margin-top: var(--sp-3);
+    }
+
+    .shap-item {
+      font-family: var(--font-data);
+      font-size: 11px;
+      background: var(--surface-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: var(--sp-2) var(--sp-3);
+    }
+
+    .shap-feature {
+      color: var(--fg-default);
+      font-weight: var(--weight-semibold);
+    }
+
+    .shap-value {
+      color: var(--fg-muted);
+    }
+
+    /* Empty / waiting state */
+    .response-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--sp-8) var(--sp-4);
+      color: var(--fg-subtle);
+    }
+
+    .response-placeholder svg {
+      width: 40px;
+      height: 40px;
+      opacity: 0.4;
+      margin-bottom: var(--sp-3);
+    }
+
+    .response-placeholder p {
+      font-size: var(--text-sm);
+      margin: 0;
+    }
+
+    /* Mobile stacking fixes */
+    @media (max-width: 767px) {
+      .rr-grid {
+        grid-template-columns: 1fr;
+      }
+      .code-block {
+        max-height: 300px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="index.html" class="navbar__brand">
+      <svg class="navbar__logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2" />
+        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <span class="navbar__wordmark">AI Risk Manager</span>
+    </a>
+
+    <ul class="navbar__links">
+      <li><a href="index.html" class="navbar__link">Overview</a></li>
+      <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
+      <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
+      <li><a href="concept.html" class="navbar__link">Roadmap Concepts</a></li>
+      <li><a href="api-playground.html" class="navbar__link" aria-current="page">API Playground</a></li>
+    </ul>
+
+    <button class="navbar__menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd"
+          d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" />
+      </svg>
+    </button>
+
+    <ul class="navbar__mobile-menu" id="mobile-menu">
+      <li><a href="index.html" class="navbar__link">Overview</a></li>
+      <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
+      <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
+      <li><a href="concept.html" class="navbar__link">Roadmap Concepts</a></li>
+      <li><a href="api-playground.html" class="navbar__link" aria-current="page">API Playground</a></li>
+    </ul>
+  </nav>
+
+  <!-- Ambient Particle Canvas -->
+  <canvas id="ambient-canvas"></canvas>
+
+  <div class="page-shell">
+    <main class="page-shell__main">
+      <div class="container">
+
+        <div class="playground-layout">
+          <!-- ── Sidebar: Endpoint List ──────────────────────── -->
+          <aside class="pg-sidebar" aria-label="API Endpoints">
+            <h2 class="pg-sidebar-heading">Endpoints</h2>
+            <ul class="endpoint-list" id="endpoint-list">
+              <!-- Populated by JS -->
+            </ul>
+            <div class="pg-sidebar-note">
+              Backend runs on <code>localhost:8000</code>. All requests are sent via <code>fetch()</code> from the browser.
+            </div>
+          </aside>
+
+          <!-- ── Main Panel ──────────────────────────────────── -->
+          <div class="pg-main" id="pg-main">
+            <!-- Dynamic content injected by JS -->
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p><strong>AI Risk Manager</strong> &mdash; Built by <span class="michroma-regular">suyansh khanna</span> <a
+            href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub
+            Repository</a>.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="particles.js"></script>
+  <script>
+    // ── Configuration ──────────────────────────────────────────
+    const API_BASE = 'http://localhost:8000';
+
+    // ── Endpoint Definitions ───────────────────────────────────
+    const ENDPOINTS = [
+      {
+        id: 'score',
+        name: 'Score Transaction',
+        method: 'POST',
+        path: '/score',
+        description: 'Score a single UPI transaction for fraud risk. Returns a risk score (0–1), an action (ALLOW / CHALLENGE / BLOCK), human-readable reasons, and the top-3 SHAP feature contributions that explain the decision.',
+        scenarios: [
+          {
+            id: 'legit',
+            label: 'Legitimate Payment',
+            payload: {
+              txn_id: "TXN_LEGIT_001",
+              amount_paise: 15000,
+              merchant_id: "M_shopkeeper_42",
+              customer_id: "C_regular_buyer",
+              device_fingerprint: "dev_pixel7_a1b2c3",
+              upi_handle: "buyer42@okaxis",
+              velocity_5min: 1,
+              velocity_1hr: 3,
+              refund_count_1hr: 0,
+              refund_rate: 0.0,
+              same_device_refunds: 0,
+              settlement_verified: 1,
+              qr_mismatch: 0,
+              remote_access_app: 0,
+              device_emulator_score: 0.02,
+              device_root_score: 0.0,
+              device_fraud_reports_30d: 0,
+              vpn_probability: 0.05,
+              hour: 14,
+              is_night: 0,
+              new_upi_handle: 0,
+              new_merchant: 0,
+              new_device: 0,
+              unusual_hour: 0,
+              session_duration_sec: 45
+            }
+          },
+          {
+            id: 'velocity',
+            label: 'Velocity Burst',
+            payload: {
+              txn_id: "TXN_VELOCITY_001",
+              amount_paise: 49900,
+              merchant_id: "M_targeted_store",
+              customer_id: "C_bot_network_7",
+              device_fingerprint: "dev_automated_script",
+              upi_handle: "throwaway777@ybl",
+              velocity_5min: 18,
+              velocity_1hr: 42,
+              refund_count_1hr: 0,
+              refund_rate: 0.0,
+              same_device_refunds: 0,
+              settlement_verified: 1,
+              qr_mismatch: 0,
+              remote_access_app: 0,
+              device_emulator_score: 0.10,
+              device_root_score: 0.0,
+              device_fraud_reports_30d: 0,
+              vpn_probability: 0.15,
+              hour: 3,
+              is_night: 1,
+              new_upi_handle: 1,
+              new_merchant: 0,
+              new_device: 1,
+              unusual_hour: 1,
+              session_duration_sec: 2,
+              merchant_id_txn_count_5min: 18,
+              merchant_id_txn_count_1hr: 42
+            }
+          },
+          {
+            id: 'emulator',
+            label: 'Emulator / Rooted',
+            payload: {
+              txn_id: "TXN_EMULATOR_001",
+              amount_paise: 75000,
+              merchant_id: "M_electronics_hub",
+              customer_id: "C_suspicious_99",
+              device_fingerprint: "dev_genymotion_x86",
+              upi_handle: "anon_pay@paytm",
+              velocity_5min: 3,
+              velocity_1hr: 8,
+              refund_count_1hr: 0,
+              refund_rate: 0.0,
+              same_device_refunds: 0,
+              settlement_verified: 0,
+              qr_mismatch: 0,
+              remote_access_app: 0,
+              device_emulator_score: 0.92,
+              device_root_score: 0.85,
+              device_fraud_reports_30d: 2,
+              vpn_probability: 0.60,
+              hour: 2,
+              is_night: 1,
+              new_upi_handle: 1,
+              new_merchant: 0,
+              new_device: 1,
+              unusual_hour: 1,
+              session_duration_sec: 12
+            }
+          },
+          {
+            id: 'qr_tamper',
+            label: 'QR Code Tampered',
+            payload: {
+              txn_id: "TXN_QR_001",
+              amount_paise: 99000,
+              merchant_id: "M_street_vendor_8",
+              customer_id: "C_victim_buyer",
+              device_fingerprint: "dev_realme_c55",
+              upi_handle: "victim_user@upi",
+              velocity_5min: 1,
+              velocity_1hr: 1,
+              refund_count_1hr: 0,
+              refund_rate: 0.0,
+              same_device_refunds: 0,
+              settlement_verified: 0,
+              qr_mismatch: 1,
+              remote_access_app: 0,
+              device_emulator_score: 0.05,
+              device_root_score: 0.0,
+              device_fraud_reports_30d: 0,
+              vpn_probability: 0.0,
+              hour: 11,
+              is_night: 0,
+              new_upi_handle: 0,
+              new_merchant: 1,
+              new_device: 0,
+              unusual_hour: 0,
+              session_duration_sec: 30
+            }
+          },
+          {
+            id: 'remote_access',
+            label: 'Remote Access Attack',
+            payload: {
+              txn_id: "TXN_REMOTE_001",
+              amount_paise: 500000,
+              merchant_id: "M_insurance_co",
+              customer_id: "C_elderly_victim",
+              device_fingerprint: "dev_samsung_a12",
+              upi_handle: "senior_citizen@sbi",
+              velocity_5min: 1,
+              velocity_1hr: 2,
+              refund_count_1hr: 0,
+              refund_rate: 0.0,
+              same_device_refunds: 0,
+              settlement_verified: 1,
+              qr_mismatch: 0,
+              remote_access_app: 1,
+              device_emulator_score: 0.0,
+              device_root_score: 0.0,
+              device_fraud_reports_30d: 0,
+              vpn_probability: 0.0,
+              hour: 15,
+              is_night: 0,
+              new_upi_handle: 0,
+              new_merchant: 1,
+              new_device: 0,
+              unusual_hour: 0,
+              session_duration_sec: 600
+            }
+          },
+          {
+            id: 'refund_abuse',
+            label: 'Refund Abuse Ring',
+            payload: {
+              txn_id: "TXN_REFUND_001",
+              amount_paise: 30000,
+              merchant_id: "M_colluding_shop",
+              customer_id: "C_refund_farmer",
+              device_fingerprint: "dev_shared_device_pool",
+              upi_handle: "refund_guy@ybl",
+              velocity_5min: 4,
+              velocity_1hr: 15,
+              refund_count_1hr: 9,
+              refund_rate: 0.60,
+              same_device_refunds: 5,
+              settlement_verified: 1,
+              qr_mismatch: 0,
+              remote_access_app: 0,
+              device_emulator_score: 0.0,
+              device_root_score: 0.0,
+              device_fraud_reports_30d: 3,
+              vpn_probability: 0.10,
+              hour: 22,
+              is_night: 1,
+              new_upi_handle: 0,
+              new_merchant: 0,
+              new_device: 0,
+              unusual_hour: 1,
+              session_duration_sec: 20
+            }
+          }
+        ]
+      },
+      {
+        id: 'batch',
+        name: 'Batch Score',
+        method: 'POST',
+        path: '/batch_score',
+        description: 'Score multiple transactions in a single API call. Useful for bulk processing or replaying historical data through the fraud detector. Each transaction in the batch is scored independently.',
+        scenarios: [
+          {
+            id: 'batch_mix',
+            label: 'Mixed Batch (3 txns)',
+            payload: {
+              transactions: [
+                {
+                  txn_id: "BATCH_001",
+                  amount_paise: 12000,
+                  merchant_id: "M_coffee_shop",
+                  customer_id: "C_morning_regular",
+                  device_fingerprint: "dev_iphone_14",
+                  upi_handle: "coffee_lover@okicici",
+                  velocity_5min: 1,
+                  velocity_1hr: 2,
+                  settlement_verified: 1,
+                  hour: 9
+                },
+                {
+                  txn_id: "BATCH_002",
+                  amount_paise: 89000,
+                  merchant_id: "M_jeweller_99",
+                  customer_id: "C_new_account",
+                  device_fingerprint: "dev_emulator_arm64",
+                  upi_handle: "temp_handle@paytm",
+                  velocity_5min: 11,
+                  velocity_1hr: 30,
+                  settlement_verified: 0,
+                  device_emulator_score: 0.88,
+                  vpn_probability: 0.75,
+                  hour: 1,
+                  is_night: 1,
+                  new_upi_handle: 1,
+                  new_device: 1
+                },
+                {
+                  txn_id: "BATCH_003",
+                  amount_paise: 25000,
+                  merchant_id: "M_grocery_mart",
+                  customer_id: "C_weekly_shopper",
+                  device_fingerprint: "dev_pixel_6a",
+                  upi_handle: "weekly_shop@okaxis",
+                  velocity_5min: 1,
+                  velocity_1hr: 1,
+                  settlement_verified: 1,
+                  hour: 18
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        id: 'fraud_types',
+        name: 'Fraud Type Stats',
+        method: 'GET',
+        path: '/fraud_type_stats',
+        description: 'Returns aggregate true-positive counts segmented by fraud type, computed from the held-out test set. Shows which fraud patterns the model catches and how many of each type were detected at the BLOCK threshold (0.70).',
+        scenarios: [
+          { id: 'default', label: 'Fetch Stats', payload: null }
+        ]
+      },
+      {
+        id: 'health',
+        name: 'Health Check',
+        method: 'GET',
+        path: '/health',
+        description: 'Liveness probe. Returns the service status, loaded model version, and validation metrics (precision, recall, F1, ROC-AUC). Used by container orchestrators and monitoring dashboards.',
+        scenarios: [
+          { id: 'default', label: 'Check Health', payload: null }
+        ]
+      },
+      {
+        id: 'health_details',
+        name: 'Health Details',
+        method: 'GET',
+        path: '/health/details',
+        description: 'Extended health information for debugging. Includes model version, feature count, decision thresholds (challenge / block), file-system checks, environment flags (API key, rate limiting), and uptime.',
+        scenarios: [
+          { id: 'default', label: 'Fetch Details', payload: null }
+        ]
+      },
+      {
+        id: 'demo',
+        name: 'Demo (Quick Test)',
+        method: 'POST',
+        path: '/demo',
+        description: 'Built-in demo endpoint that scores two hardcoded sample transactions — one legitimate, one fraudulent — and returns the results. Useful for a one-click smoke test of the entire pipeline.',
+        scenarios: [
+          { id: 'default', label: 'Run Demo', payload: null }
+        ]
+      }
+    ];
+
+    // ── State ──────────────────────────────────────────────────
+    let currentEndpoint = ENDPOINTS[0];
+    let currentScenario = ENDPOINTS[0].scenarios[0];
+    let lastResponse = null;
+    let lastLatency = null;
+    let lastStatus = null;
+
+    // ── Render Sidebar ─────────────────────────────────────────
+    function renderSidebar() {
+      const list = document.getElementById('endpoint-list');
+      list.innerHTML = ENDPOINTS.map(ep => `
+        <li class="endpoint-item">
+          <button id="ep-btn-${ep.id}" onclick="selectEndpoint('${ep.id}')" class="${ep.id === currentEndpoint.id ? 'active' : ''}">
+            <span>
+              <span class="endpoint-method ${ep.method === 'GET' ? 'method-get' : 'method-post'}">${ep.method}</span>
+              ${ep.name}
+            </span>
+            <span class="endpoint-path">${ep.path}</span>
+          </button>
+        </li>
+      `).join('');
+    }
+
+    // ── Select Endpoint ────────────────────────────────────────
+    function selectEndpoint(id) {
+      currentEndpoint = ENDPOINTS.find(e => e.id === id);
+      currentScenario = currentEndpoint.scenarios[0];
+      lastResponse = null;
+      lastLatency = null;
+      lastStatus = null;
+      renderSidebar();
+      renderMain();
+    }
+
+    // ── Select Scenario ────────────────────────────────────────
+    function selectScenario(scenarioId) {
+      currentScenario = currentEndpoint.scenarios.find(s => s.id === scenarioId);
+      renderMain();
+    }
+
+    // ── Render Main Panel ──────────────────────────────────────
+    function renderMain() {
+      const main = document.getElementById('pg-main');
+      const methodClass = currentEndpoint.method === 'GET' ? 'method-get' : 'method-post';
+
+      let scenarioHTML = '';
+      if (currentEndpoint.scenarios.length > 1) {
+        scenarioHTML = `
+          <div class="scenario-strip">
+            ${currentEndpoint.scenarios.map(s => `
+              <button class="scenario-btn ${s.id === currentScenario.id ? 'active' : ''}" onclick="selectScenario('${s.id}')">${s.label}</button>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      const payloadJSON = currentScenario.payload
+        ? JSON.stringify(currentScenario.payload, null, 2)
+        : '// No request body (GET request)';
+
+      const responseHTML = lastResponse
+        ? `<pre class="code-block">${syntaxHighlight(JSON.stringify(lastResponse, null, 2))}</pre>`
+        : `<div class="response-placeholder">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+               <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"/>
+             </svg>
+             <p>Hit "Send Request" to see the response</p>
+           </div>`;
+
+      const statusHTML = lastStatus
+        ? `<span class="response-status ${lastStatus >= 200 && lastStatus < 300 ? 'status-200' : 'status-error'}">${lastStatus}</span>`
+        : '';
+
+      const latencyHTML = lastLatency
+        ? `<span class="latency-tag">${lastLatency}ms</span>`
+        : '';
+
+      // Build verdict card for /score responses
+      let verdictHTML = '';
+      if (lastResponse && currentEndpoint.id === 'score' && lastResponse.score !== undefined) {
+        verdictHTML = buildVerdictCard(lastResponse);
+      }
+      if (lastResponse && currentEndpoint.id === 'batch' && lastResponse.results) {
+        verdictHTML = lastResponse.results.map(r => buildVerdictCard(r)).join('');
+      }
+      if (lastResponse && currentEndpoint.id === 'demo' && lastResponse.demo_transactions) {
+        verdictHTML = lastResponse.demo_transactions.map(r => buildVerdictCard(r)).join('');
+      }
+
+      main.innerHTML = `
+        <div class="ep-header">
+          <div>
+            <span class="ep-method-badge ${methodClass}">${currentEndpoint.method}</span>
+            <span class="ep-url">${API_BASE}${currentEndpoint.path}</span>
+          </div>
+          <p class="ep-description">${currentEndpoint.description}</p>
+        </div>
+
+        ${scenarioHTML}
+
+        <div class="send-bar">
+          <button class="btn-send" id="btn-send" onclick="sendRequest()">
+            <span class="spinner"></span>
+            <span class="btn-label">Send Request</span>
+          </button>
+          ${latencyHTML}
+        </div>
+
+        <div class="rr-grid">
+          <div class="rr-panel">
+            <div class="rr-panel-header">
+              <span>Request</span>
+              <span class="endpoint-method ${methodClass}">${currentEndpoint.method}</span>
+            </div>
+            <div class="rr-panel-body">
+              <pre class="code-block">${syntaxHighlight(payloadJSON)}</pre>
+            </div>
+          </div>
+
+          <div class="rr-panel">
+            <div class="rr-panel-header">
+              <span>Response</span>
+              ${statusHTML}
+            </div>
+            <div class="rr-panel-body" id="response-body">
+              ${responseHTML}
+            </div>
+          </div>
+        </div>
+
+        ${verdictHTML}
+      `;
+    }
+
+    // ── Build Verdict Card ─────────────────────────────────────
+    function buildVerdictCard(data) {
+      const score = data.score;
+      const action = data.action;
+      const reasons = data.reasons || [];
+      const shap = data.shap_top3 || [];
+      const txnId = data.txn_id || '';
+      const txnType = data.type || '';
+
+      let scoreClass = 'safe';
+      if (score >= 0.7) scoreClass = 'danger';
+      else if (score >= 0.3) scoreClass = 'warning';
+
+      let actionClass = 'action-allow';
+      if (action === 'BLOCK') actionClass = 'action-block';
+      else if (action === 'CHALLENGE') actionClass = 'action-challenge';
+
+      let reasonsHTML = '';
+      if (reasons.length > 0) {
+        reasonsHTML = `
+          <ul class="verdict-reasons">
+            ${reasons.map(r => `<li>${escapeHTML(r)}</li>`).join('')}
+          </ul>
+        `;
+      }
+
+      let shapHTML = '';
+      if (shap.length > 0) {
+        shapHTML = `
+          <div style="margin-top: var(--sp-3);">
+            <div style="font-size: var(--text-xs); font-weight: var(--weight-bold); color: var(--fg-muted); margin-bottom: var(--sp-2); text-transform: uppercase; letter-spacing: 0.04em;">Top SHAP Contributors</div>
+            <div class="shap-grid">
+              ${shap.map(s => `
+                <div class="shap-item">
+                  <span class="shap-feature">${escapeHTML(s.feature || s.name || Object.keys(s)[0])}</span><br>
+                  <span class="shap-value">${typeof s.shap_value === 'number' ? s.shap_value.toFixed(4) : (s.value || s[Object.keys(s)[0]])}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="verdict-card">
+          <div style="font-size: var(--text-xs); color: var(--fg-muted); margin-bottom: var(--sp-2); font-family: var(--font-data);">
+            ${txnId ? escapeHTML(txnId) : ''}${txnType ? ' — ' + escapeHTML(txnType) : ''}
+          </div>
+          <div class="verdict-row">
+            <span class="verdict-score ${scoreClass}">${(score * 100).toFixed(1)}%</span>
+            <span class="verdict-action ${actionClass}">${escapeHTML(action)}</span>
+          </div>
+          ${reasonsHTML}
+          ${shapHTML}
+        </div>
+      `;
+    }
+
+    // ── Send Request ───────────────────────────────────────────
+    async function sendRequest() {
+      const btn = document.getElementById('btn-send');
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      const start = performance.now();
+
+      try {
+        const opts = { method: currentEndpoint.method, headers: {} };
+
+        if (currentEndpoint.method === 'POST' && currentScenario.payload) {
+          opts.headers['Content-Type'] = 'application/json';
+          opts.body = JSON.stringify(currentScenario.payload);
+        }
+
+        const res = await fetch(`${API_BASE}${currentEndpoint.path}`, opts);
+        lastLatency = Math.round(performance.now() - start);
+        lastStatus = res.status;
+        lastResponse = await res.json();
+      } catch (err) {
+        lastLatency = Math.round(performance.now() - start);
+        lastStatus = 0;
+        lastResponse = {
+          error: 'Network Error',
+          detail: `Could not reach ${API_BASE}. Make sure the backend is running: python -m services.upi_fraud_detector.serve`,
+          message: err.message
+        };
+      }
+
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      renderMain();
+    }
+
+    // ── Syntax Highlighting (minimal) ──────────────────────────
+    function syntaxHighlight(json) {
+      if (!json) return '';
+      json = escapeHTML(json);
+      return json.replace(
+        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+        function (match) {
+          let cls = 'color: var(--fg-muted);'; // number
+          if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+              cls = 'color: var(--accent-default); font-weight: 500;'; // key
+            } else {
+              cls = 'color: #22a22a;'; // string
+            }
+          } else if (/true|false/.test(match)) {
+            cls = 'color: #c48800;'; // bool
+          } else if (/null/.test(match)) {
+            cls = 'color: var(--fg-subtle);'; // null
+          }
+          return `<span style="${cls}">${match}</span>`;
+        }
+      );
+    }
+
+    function escapeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ── Init ───────────────────────────────────────────────────
+    renderSidebar();
+    renderMain();
+  </script>
+</body>
+
+</html>
