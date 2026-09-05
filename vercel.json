@@ -1,0 +1,54 @@
+{
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/dashboard/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/score",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/batch_score",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/health/details",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/ready",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/metrics",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/fraud_type_stats",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/demo",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/dashboard/$1"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend/dashboard/index.html"
+    }
+  ]
+}

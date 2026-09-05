@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const finalPayload = Object.assign({}, defaults, payload);
     
     try {
-      const response = await fetch('http://localhost:8000/score', {
+      const response = await fetch('/score', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
     } catch (err) {
       console.error(err);
-      renderError("Unable to connect to the prediction service or the backend returned an error. Please verify the API is running at http://localhost:8000.");
+      renderError("Unable to connect to the prediction service or the backend returned an error.");
     } finally {
       submitBtn.disabled = false;
       submitBtn.classList.remove('is-loading');

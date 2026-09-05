@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const errorMsg = document.getElementById('error-message');
 
   try {
-    const response = await fetch('http://localhost:8000/fraud_type_stats');
+    const response = await fetch('/fraud_type_stats');
     
     if (!response.ok) {
       throw new Error(`API Error (${response.status})`);
@@ -65,6 +65,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error(err);
     loadingState.style.display = 'none';
     errorState.style.display = 'flex';
-    errorMsg.textContent = "Unable to fetch telemetry from the backend service. Ensure the API is running at http://localhost:8000.";
+    errorMsg.textContent = "Unable to fetch telemetry from the backend service. Ensure the API is running.";
   }
 });
