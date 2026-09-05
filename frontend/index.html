@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="UPI Fraud Detector — Real-time ML-powered fraud detection for Indian UPI payments">
+  <title>UPI Fraud Detector | Razorpay Buildathon 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='2' width='28' height='28' rx='6' fill='none' stroke='%2300d4aa' stroke-width='2'/><path d='M8 16 L14 22 L24 10' stroke='%2300d4aa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/><circle cx='16' cy='16' r='3' fill='%2300d4aa'/></svg>">
+</head>
+
+<body>
+  <!-- Animated background canvas -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- Navigation -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <a href="#" class="nav__logo" aria-label="UPI Fraud Detector Home">
+      <svg class="nav__logo-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="28" height="28" rx="6" stroke="currentColor" stroke-width="2" />
+        <path d="M8 16 L14 22 L24 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+        <circle cx="16" cy="16" r="3" fill="currentColor" />
+      </svg>
+      <span class="nav__logo-text">UPI Fraud Detector</span>
+    </a>
+    <div class="nav__links">
+      <a href="#demo" class="nav__link">Live Demo</a>
+      <a href="#metrics" class="nav__link">Metrics</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero" id="home">
+    <div class="hero__bg-grid" aria-hidden="true"></div>
+
+    <div class="hero__content">      <h1 class="hero__title">
+        <span class="hero__title-line">Real-time</span>
+        <span class="hero__title-line hero__title-line--accent">UPI Fraud Detection</span>
+        <span class="hero__title-line">at Scale</span>
+      </h1>
+
+      <p class="hero__description">
+        LightGBM + SHAP explainability • Sub-100ms latency • 4 fraud patterns detected • Production-ready API
+      </p>
+
+      <div class="hero__actions">
+        <a href="#demo" class="btn btn--primary">Try Live Demo</a>
+        <a href="#pipeline" class="btn btn--secondary">View Pipeline</a>
+      </div>
+
+      <div class="hero__stats">
+        <div class="hero__stat">
+          <span class="hero__stat-value" data-count="1">0</span>
+          <span class="hero__stat-label">ms avg latency</span>
+        </div>
+        <div class="hero__stat">
+          <span class="hero__stat-value" data-count="26">0</span>
+          <span class="hero__stat-label">RPS single-process</span>
+        </div>
+        <div class="hero__stat">
+          <span class="hero__stat-value" data-count="4">0</span>
+          <span class="hero__stat-label">fraud patterns</span>
+        </div>
+        <div class="hero__stat">
+          <span class="hero__stat-value" data-count="100">0</span>
+          <span class="hero__stat-label">% PR-AUC</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Animated pipeline visualization -->
+    <div class="hero__pipeline" id="pipeline" aria-label="Fraud detection pipeline visualization">
+      <div class="pipeline__stage pipeline__stage--ingest" data-stage="ingest">
+        <div class="pipeline__node">
+          <svg class="pipeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+        </div>
+        <span class="pipeline__label">Ingest</span>
+        <span class="pipeline__detail">UPI TXN</span>
+      </div>
+
+      <div class="pipeline__arrow" aria-hidden="true">
+        <svg viewBox="0 0 40 20">
+          <path d="M0 10 L35 10 M28 5 L35 10 L28 15" fill="none" stroke="currentColor" stroke-width="2" />
+        </svg>
+      </div>
+
+      <div class="pipeline__stage pipeline__stage--features" data-stage="features">
+        <div class="pipeline__node">
+          <svg class="pipeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        </div>
+        <span class="pipeline__label">Features</span>
+        <span class="pipeline__detail">26 signals</span>
+      </div>
+
+      <div class="pipeline__arrow" aria-hidden="true">
+        <svg viewBox="0 0 40 20">
+          <path d="M0 10 L35 10 M28 5 L35 10 L28 15" fill="none" stroke="currentColor" stroke-width="2" />
+        </svg>
+      </div>
+
+      <div class="pipeline__stage pipeline__stage--model" data-stage="model">
+        <div class="pipeline__node">
+          <svg class="pipeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <ellipse cx="12" cy="12" rx="8" ry="5" />
+            <path d="M12 7v10M7 12h10" />
+          </svg>
+        </div>
+        <span class="pipeline__label">LightGBM</span>
+        <span class="pipeline__detail">Calibrated</span>
+      </div>
+
+      <div class="pipeline__arrow" aria-hidden="true">
+        <svg viewBox="0 0 40 20">
+          <path d="M0 10 L35 10 M28 5 L35 10 L28 15" fill="none" stroke="currentColor" stroke-width="2" />
+        </svg>
+      </div>
+
+      <div class="pipeline__stage pipeline__stage--decision" data-stage="decision">
+        <div class="pipeline__node">
+          <svg class="pipeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <path d="M9 12l2 2 4-4" />
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+        </div>
+        <span class="pipeline__label">Decision</span>
+        <span class="pipeline__detail">ALLOW / CHALLENGE / BLOCK</span>
+      </div>
+
+      <div class="pipeline__arrow" aria-hidden="true">
+        <svg viewBox="0 0 40 20">
+          <path d="M0 10 L35 10 M28 5 L35 10 L28 15" fill="none" stroke="currentColor" stroke-width="2" />
+        </svg>
+      </div>
+
+      <div class="pipeline__stage pipeline__stage--explain" data-stage="explain">
+        <div class="pipeline__node">
+          <svg class="pipeline__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+        </div>
+        <span class="pipeline__label">SHAP</span>
+        <span class="pipeline__detail">Top-3 factors</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live Demo Section -->
+  <section class="demo" id="demo" aria-labelledby="demo-title">
+    <div class="container">
+      <header class="section-header">
+        <h2 id="demo-title" class="section-title">Live Fraud Detection</h2>
+        <p class="section-description">Submit a transaction and see real-time scoring with SHAP explanations</p>
+      </header>
+
+      <div class="demo__grid">
+        <!-- Input Panel -->
+        <div class="demo__panel demo__panel--input">
+          <h3 class="panel-title">Transaction Input</h3>
+
+          <form id="demo-form" class="demo-form" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="txn_id" class="tooltip-trigger" data-tooltip="Unique identifier for this transaction">Transaction ID</label>
+                <input type="text" id="txn_id" name="txn_id" value="TXN_20240831_001" required>
+              </div>
+              <div class="form-group">
+                <label for="amount_paise" class="tooltip-trigger" data-tooltip="Transaction amount in paise (1 INR = 100 paise)">Amount</label>
+                <input type="number" id="amount_paise" name="amount_paise" value="45000" min="1" max="10000000"
+                  required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="merchant_id" class="tooltip-trigger" data-tooltip="Unique identifier for the merchant receiving payment">Merchant ID</label>
+                <input type="text" id="merchant_id" name="merchant_id" value="M_new999" required>
+              </div>
+              <div class="form-group">
+                <label for="customer_id" class="tooltip-trigger" data-tooltip="Unique identifier for the customer initiating payment">Customer ID</label>
+                <input type="text" id="customer_id" name="customer_id" value="C_fake111" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="device_fingerprint" class="tooltip-trigger" data-tooltip="Hash of the device hardware & software configuration">Device Fingerprint</label>
+                <input type="text" id="device_fingerprint" name="device_fingerprint" value="dev_emulator1" required>
+              </div>
+              <div class="form-group">
+                <label for="upi_handle" class="tooltip-trigger" data-tooltip="Virtual Payment Address (VPA) of the user">UPI Handle</label>
+                <input type="text" id="upi_handle" name="upi_handle" value="upi_throwaway999" required>
+              </div>
+            </div>
+
+            <fieldset class="form-fieldset">
+              <legend>Risk Signals</legend>
+              <div class="form-row">
+                <div class="form-group form-group--slider">
+                  <label for="velocity_5min" class="tooltip-trigger" data-tooltip="Number of transactions in the last 5 minutes">Velocity 5min <span id="velocity_5min_val">12</span></label>
+                  <input type="range" id="velocity_5min" name="velocity_5min" min="0" max="50" value="12">
+                </div>
+                <div class="form-group form-group--slider">
+                  <label for="velocity_1hr" class="tooltip-trigger" data-tooltip="Number of transactions in the last hour">Velocity 1hr <span id="velocity_1hr_val">25</span></label>
+                  <input type="range" id="velocity_1hr" name="velocity_1hr" min="0" max="100" value="25">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group form-group--slider">
+                  <label for="device_emulator_score" class="tooltip-trigger" data-tooltip="Probability that the device is an emulator (0.0 to 1.0)">Emulator Score <span
+                      id="device_emulator_score_val">0.85</span></label>
+                  <input type="range" id="device_emulator_score" name="device_emulator_score" min="0" max="1"
+                    step="0.01" value="0.85">
+                </div>
+                <div class="form-group form-group--slider">
+                  <label for="vpn_probability" class="tooltip-trigger" data-tooltip="Probability that the connection is routed through a VPN">VPN Probability <span id="vpn_probability_val">0.70</span></label>
+                  <input type="range" id="vpn_probability" name="vpn_probability" min="0" max="1" step="0.01"
+                    value="0.70">
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-fieldset">
+              <legend>Binary Flags</legend>
+              <div class="form-checkboxes">
+                <label class="checkbox tooltip-trigger" data-tooltip="Has the merchant's settlement account been verified?"><input type="checkbox" name="settlement_verified" value="1" checked> Settlement
+                  Verified</label>
+                <label class="checkbox tooltip-trigger" data-tooltip="Did the transaction occur between 10 PM and 6 AM?"><input type="checkbox" name="is_night" value="1" checked> Night (22-06)</label>
+                <label class="checkbox tooltip-trigger" data-tooltip="Is this the first time the customer is paying this merchant?"><input type="checkbox" name="new_merchant" value="1" checked> New
+                  Merchant</label>
+                <label class="checkbox tooltip-trigger" data-tooltip="Is this device previously unseen for this customer?"><input type="checkbox" name="new_device" value="1" checked> New Device</label>
+                <label class="checkbox tooltip-trigger" data-tooltip="Does the merchant ID match the scanned QR code details?"><input type="checkbox" name="qr_mismatch" value="1" checked> QR Mismatch</label>
+                <label class="checkbox tooltip-trigger" data-tooltip="Is a screen-sharing or remote desktop app active?"><input type="checkbox" name="remote_access_app" value="1" checked> Remote Access
+                  App</label>
+              </div>
+            </fieldset>
+
+            <button type="submit" class="btn btn--primary btn--full" id="submit-btn">
+              <span class="btn__text">Score Transaction</span>
+              <span class="btn__loader" aria-hidden="true"></span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="demo__panel demo__panel--result">
+          <h3 class="panel-title">Detection Result</h3>
+
+          <div class="result" id="result" role="status" aria-live="polite">
+            <div class="result__placeholder">
+              <svg class="result__placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.5" aria-hidden="true">
+                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              <p>Submit a transaction to see detection results</p>
+            </div>
+
+            <div class="result__content" style="display: none;">
+              <div class="result__action result__action--allow" data-action="ALLOW">
+                <span class="result__action-label">ALLOW</span>
+                <span class="result__action-desc">Low risk — proceed normally</span>
+              </div>
+              <div class="result__action result__action--challenge" data-action="CHALLENGE">
+                <span class="result__action-label">CHALLENGE</span>
+                <span class="result__action-desc">Elevated risk — require OTP</span>
+              </div>
+              <div class="result__action result__action--block" data-action="BLOCK">
+                <span class="result__action-label">BLOCK</span>
+                <span class="result__action-desc">High risk — reject transaction</span>
+              </div>
+
+              <div class="result__score">
+                <div class="score-circle">
+                  <svg viewBox="0 0 120 120" class="score-svg">
+                    <circle class="score-bg" cx="60" cy="60" r="50" fill="none" stroke="currentColor"
+                      stroke-width="8" />
+                    <circle class="score-progress" cx="60" cy="60" r="50" fill="none" stroke="currentColor"
+                      stroke-width="8" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"
+                      transform="rotate(-90 60 60)" />
+                  </svg>
+                  <span class="score-value"><span id="score-value">0</span>%</span>
+                </div>
+                <p class="score-label">Fraud Probability</p>
+              </div>
+
+              <div class="result__reasons" id="reasons">
+                <h4>Why this decision?</h4>
+                <ul id="reasons-list"></ul>
+              </div>
+
+              <div class="result__shap" id="shap">
+                <h4>Top Contributing Factors (SHAP)</h4>
+                <div class="shap-bars" id="shap-bars"></div>
+              </div>
+
+              <div class="result__meta">
+                <span class="result__latency" id="latency">—</span>
+                <span class="result__model" id="model-version">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Metrics Section -->
+  <section class="metrics" id="metrics" aria-labelledby="metrics-title">
+    <div class="container">
+      <header class="section-header">
+        <h2 id="metrics-title" class="section-title">Model Performance</h2>
+        <p class="section-description">Held-out test set metrics (synthetic data — real-world validation pending)</p>
+      </header>
+
+      <div class="metrics__grid">
+        <article class="metric-card">
+          <div class="metric-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 20V10M12 20V4M6 20v-6" />
+            </svg>
+          </div>
+          <div class="metric-card__value" data-count="100">0%</div>
+          <div class="metric-card__label">PR-AUC</div>
+          <div class="metric-card__detail">Perfect separation on synthetic data</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3l18 18M3 21V3h18" />
+            </svg>
+          </div>
+          <div class="metric-card__value" data-count="100">0%</div>
+          <div class="metric-card__label">ROC-AUC</div>
+          <div class="metric-card__detail">Perfect separation on synthetic data</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 17l5-5-5-5" />
+            </svg>
+          </div>
+          <div class="metric-card__value" data-count="26">0</div>
+          <div class="metric-card__label">RPS (single)</div>
+          <div class="metric-card__detail">~100 RPS with 4 workers</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          </div>
+          <div class="metric-card__value" data-count="100">0</div>
+          <div class="metric-card__label">ms p99</div>
+          <div class="metric-card__detail">Target <100ms< /div>
+        </article>
+      </div>
+
+      <!-- Confusion Matrix -->
+      <div class="confusion" id="confusion">
+        <h3>Confusion Matrix (Challenge Threshold 0.3)</h3>
+        <div class="confusion__matrix">
+          <div class="confusion__cell confusion__cell--header"></div>
+          <div class="confusion__cell confusion__cell--header">Pred: Legit</div>
+          <div class="confusion__cell confusion__cell--header">Pred: Fraud</div>
+          <div class="confusion__cell confusion__cell--header">Actual: Legit</div>
+          <div class="confusion__cell confusion__cell--tn">49,500</div>
+          <div class="confusion__cell confusion__cell--fp">0</div>
+          <div class="confusion__cell confusion__cell--header">Actual: Fraud</div>
+          <div class="confusion__cell confusion__cell--fn">0</div>
+          <div class="confusion__cell confusion__cell--tp">500</div>
+        </div>
+        <p class="confusion__note">Synthetic test set: 50,000 legit + 500 fraud</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Section -->
+  <section class="architecture" id="architecture" aria-labelledby="arch-title">
+    <div class="container">
+      <header class="section-header">
+        <h2 id="arch-title" class="section-title">System Architecture</h2>
+        <p class="section-description">Production-ready deployment with horizontal scaling</p>
+      </header>
+
+      <div class="arch-diagram" id="arch-diagram">
+        <div class="arch-layer">
+          <div class="arch-node arch-node--client">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <path d="M8 21h8" />
+            </svg>
+            <span>Client Apps</span>
+          </div>
+        </div>
+
+        <div class="arch-arrow" aria-hidden="true">→</div>
+
+        <div class="arch-layer arch-layer--gateway">
+          <div class="arch-node arch-node--gateway">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="2" />
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>API Gateway</span>
+            <span class="arch-node__detail">Auth · Rate Limit · TLS</span>
+          </div>
+        </div>
+
+        <div class="arch-arrow" aria-hidden="true">→</div>
+
+        <div class="arch-layer">
+          <div class="arch-node arch-node--worker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <path d="M6 10h16M6 14h16" />
+            </svg>
+            <span>Worker 1</span>
+          </div>
+          <div class="arch-node arch-node--worker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <path d="M6 10h16M6 14h16" />
+            </svg>
+            <span>Worker 2</span>
+          </div>
+          <div class="arch-node arch-node--worker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <path d="M6 10h16M6 14h16" />
+            </svg>
+            <span>Worker 3</span>
+          </div>
+          <div class="arch-node arch-node--worker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <path d="M6 10h16M6 14h16" />
+            </svg>
+            <span>Worker 4</span>
+          </div>
+        </div>
+
+        <div class="arch-arrow" aria-hidden="true">⇄</div>
+
+        <div class="arch-layer arch-layer--data">
+          <div class="arch-node arch-node--data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <cylinder cx="12" cy="12" r="6" h="10" />
+            </svg>
+            <span>Model Artifacts</span>
+            <span class="arch-node__detail">LightGBM + SHAP</span>
+          </div>
+          <div class="arch-node arch-node--data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <database />
+            </svg>
+            <span>PostgreSQL</span>
+            <span class="arch-node__detail">Metadata & Logs</span>
+          </div>
+          <div class="arch-node arch-node--data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <path d="M6 10h16" />
+            </svg>
+            <span>Prometheus</span>
+            <span class="arch-node__detail">Metrics</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section class="techstack" aria-labelledby="tech-title">
+    <div class="container">
+      <header class="section-header">
+        <h2 id="tech-title" class="section-title">Tech Stack</h2>
+        <p class="section-description">Purpose-built for fraud detection — no unnecessary abstractions</p>
+      </header>
+
+      <div class="tech-grid">
+        <article class="tech-card">
+          <div class="tech-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <h3>LightGBM</h3>
+          <p>Gradient boosting with categorical support, early stopping, isotonic calibration</p>
+        </article>
+
+        <article class="tech-card">
+          <div class="tech-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </div>
+          <h3>SHAP</h3>
+          <p>TreeExplainer for exact SHAP values — top-3 factors per prediction</p>
+        </article>
+
+        <article class="tech-card">
+          <div class="tech-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" />
+            </svg>
+          </div>
+          <h3>FastAPI</h3>
+          <p>Async Python API with Pydantic validation, OpenAPI docs, lifespan events</p>
+        </article>
+
+        <article class="tech-card">
+          <div class="tech-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <path d="M8 21h8" />
+            </svg>
+          </div>
+          <h3>Pydantic v2</h3>
+          <p>Rust-backed validation — 10-20x faster than v1, strict typing</p>
+        </article>
+
+        <article class="tech-card">
+          <div class="tech-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </div>
+          <h3>Prometheus</h3>
+          <p>Native /metrics endpoint — latency, throughput, fraud rates, model loads</p>
+        </article>
+
+        <article class="tech-card">
+          <div class="tech-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+          </div>
+          <h3>Docker</h3>
+          <p>Multi-stage build — 200MB runtime, non-root user, health checks</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <svg class="footer__logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="28" height="28" rx="6" stroke="currentColor" stroke-width="2" />
+            <path d="M8 16 L14 22 L24 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <circle cx="16" cy="16" r="3" fill="currentColor" />
+          </svg>
+          <p>Built for Razorpay Buildathon 2026 — 3 days, 0 dependencies on external ML services.</p>
+        </div>
+
+        <nav class="footer__links">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#demo">Live Demo</a></li>
+            <li><a href="#pipeline">Pipeline</a></li>
+            <li><a href="#metrics">Metrics</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+          </ul>
+        </nav>
+
+        <nav class="footer__links">
+          <h4>API</h4>
+          <ul>
+            <li><code>POST /score</code> — Single transaction</li>
+            <li><code>POST /batch_score</code> — Batch scoring</li>
+            <li><code>GET /health</code> — Liveness</li>
+            <li><code>GET /ready</code> — Readiness</li>
+            <li><code>GET /metrics</code> — Prometheus</li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="footer__bottom">
+        <a href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener" aria-label="View on GitHub" style="display:inline-block; color:var(--fg-subtle); margin-bottom:var(--space-3); transition:color 0.2s;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" onmouseover="this.style.color='var(--fg)'" onmouseout="this.style.color=''">
+            <path
+              d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
+          </svg>
+        </a>
+        <p>Not for production use without real-data validation. Apache-2.0 License.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/main.js"></script>
+</body>
+
+</html>

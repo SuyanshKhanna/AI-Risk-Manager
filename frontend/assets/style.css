@@ -718,53 +718,82 @@ img, svg { display: block; max-width: 100%; }
 .tooltip-trigger::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
+  top: 50%;
+  left: calc(100% + 12px);
+  transform: translateY(-50%) translateX(-6px);
   width: max-content;
-  max-width: 220px;
-  background: var(--bg-card);
+  max-width: 200px;
+  background: rgba(15, 22, 32, 0.95);
   color: var(--fg);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 400;
-  line-height: 1.4;
-  text-align: center;
-  border: 1px solid var(--border-bright);
-  box-shadow: var(--shadow-md);
+  line-height: 1.5;
+  text-align: left;
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 16px rgba(0, 212, 170, 0.2), var(--shadow-md);
   opacity: 0;
   visibility: hidden;
-  transition: all var(--duration-fast) var(--ease-out);
-  z-index: 10;
+  transition: opacity var(--duration-fast) var(--ease-out),
+              visibility var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+  z-index: 200;
   text-transform: none;
   letter-spacing: normal;
   text-shadow: none;
+  white-space: normal;
+  pointer-events: none;
 }
 
+/* Left-pointing arrow caret */
 .tooltip-trigger::before {
   content: '';
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  border: 4px solid transparent;
-  border-top-color: var(--border-bright);
+  top: 50%;
+  left: calc(100% + 4px);
+  transform: translateY(-50%) translateX(-6px);
+  border: 5px solid transparent;
+  border-right-color: var(--accent);
   opacity: 0;
   visibility: hidden;
-  transition: all var(--duration-fast) var(--ease-out);
-  z-index: 11;
+  transition: opacity var(--duration-fast) var(--ease-out),
+              visibility var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+  z-index: 201;
+  pointer-events: none;
 }
 
 .tooltip-trigger:hover::after,
 .tooltip-trigger:hover::before {
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(-50%) translateX(0);
 }
 
+/* Checkbox tooltips: position above since they're in a flex-wrap row */
 .checkbox.tooltip-trigger::after {
-  bottom: calc(100% + 4px);
+  top: auto;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  max-width: 180px;
+  text-align: center;
+}
+
+.checkbox.tooltip-trigger::before {
+  top: auto;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  border: 5px solid transparent;
+  border-top-color: var(--accent);
+  border-right-color: transparent;
+}
+
+.checkbox.tooltip-trigger:hover::after,
+.checkbox.tooltip-trigger:hover::before {
+  transform: translateX(-50%) translateY(0);
 }
 
 /* Result Panel */

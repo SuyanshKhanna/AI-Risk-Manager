@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI Risk Manager — Not-Yet-Implemented Fraud Protection System Concept Specifications">
+  <title>Fraud Protection Concepts — AI Risk Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <style>
+    /* Concept page layout */
+    .concept-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--sp-8);
+      margin-top: var(--sp-6);
+      margin-bottom: var(--sp-12);
+    }
+
+    @media (min-width: 960px) {
+      .concept-layout {
+        grid-template-columns: 280px 1fr;
+        align-items: start;
+      }
+    }
+
+    /* Concept switcher sidebar */
+    .concept-sidebar {
+      background: var(--surface-base);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: var(--sp-4);
+      position: static;
+    }
+
+    @media (min-width: 960px) {
+      .concept-sidebar {
+        position: sticky;
+        top: calc(var(--nav-height) + var(--disclaimer-height) + var(--sp-4));
+      }
+    }
+
+    .sidebar-heading {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--sp-3);
+      padding: 0 var(--sp-2);
+    }
+
+    .concept-nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-1);
+    }
+
+    .concept-nav-item button {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: var(--sp-2) var(--sp-3);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--fg-default);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.1s ease, border-color 0.1s ease;
+    }
+
+    .concept-nav-item button:hover {
+      background: var(--surface-sunken);
+    }
+
+    .concept-nav-item button.active {
+      background: var(--accent-subtle-bg);
+      border-color: var(--border-default);
+      font-weight: var(--weight-semibold);
+      color: var(--accent-default);
+    }
+
+    .concept-nav-item button:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+      border-color: var(--accent-default);
+    }
+
+    .concept-nav-item .nav-category {
+      font-size: var(--text-xs);
+      color: var(--fg-subtle);
+      font-weight: var(--weight-normal);
+    }
+
+    .concept-nav-item button.active .nav-category {
+      color: var(--accent-default);
+      opacity: 0.8;
+    }
+
+    .sidebar-footer-note {
+      margin-top: var(--sp-4);
+      padding: var(--sp-3);
+      border-top: 1px solid var(--border-subtle);
+      font-size: var(--text-xs);
+      color: var(--fg-muted);
+      line-height: var(--leading-relaxed);
+    }
+
+    /* Main concept content pane */
+    .concept-main {
+      min-width: 0;
+    }
+
+    /* MANDATORY NON-REMOVABLE CONCEPT BANNER */
+    .concept-status-banner {
+      background: var(--status-warning-bg);
+      border: 2px solid var(--status-warning);
+      border-radius: var(--radius-md);
+      padding: var(--sp-4) var(--sp-5);
+      margin-bottom: var(--sp-6);
+      display: flex;
+      gap: var(--sp-4);
+      align-items: flex-start;
+      user-select: none;
+    }
+
+    .concept-status-icon {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      color: var(--status-warning-fg);
+      margin-top: 2px;
+    }
+
+    .concept-status-body {
+      flex: 1;
+    }
+
+    .concept-status-badge {
+      display: inline-block;
+      background: var(--status-warning-fg);
+      color: #ffffff;
+      font-family: var(--font-data);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      letter-spacing: 0.04em;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--sp-1);
+    }
+
+    .concept-status-title {
+      font-size: var(--text-base);
+      font-weight: var(--weight-bold);
+      color: var(--status-warning-fg);
+      margin-bottom: 2px;
+    }
+
+    .concept-status-desc {
+      font-size: var(--text-xs);
+      color: var(--status-warning-fg);
+      line-height: var(--leading-normal);
+      opacity: 0.95;
+    }
+
+    /* Header block */
+    .concept-header {
+      background: var(--surface-base);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: var(--sp-6);
+      margin-bottom: var(--sp-6);
+    }
+
+    .concept-category-tag {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      color: var(--fg-muted);
+      margin-bottom: var(--sp-1);
+      display: block;
+    }
+
+    .concept-title {
+      font-size: clamp(var(--text-xl), 3vw, var(--text-2xl));
+      font-weight: var(--weight-bold);
+      color: var(--fg-default);
+      line-height: var(--leading-tight);
+      margin-bottom: var(--sp-4);
+    }
+
+    /* Meta metrics strip */
+    .concept-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--sp-3);
+      padding-top: var(--sp-4);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .meta-box {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-lbl {
+      font-size: var(--text-xs);
+      color: var(--fg-muted);
+    }
+
+    .meta-val {
+      font-family: var(--font-data);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      color: var(--fg-default);
+      word-break: break-word;
+    }
+
+    /* Content sections */
+    .spec-section {
+      background: var(--surface-base);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: var(--sp-6);
+      margin-bottom: var(--sp-6);
+    }
+
+    .spec-section-title {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+      color: var(--fg-default);
+      margin-bottom: var(--sp-4);
+      padding-bottom: var(--sp-2);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .spec-lead {
+      font-size: var(--text-base);
+      color: var(--fg-default);
+      line-height: var(--leading-relaxed);
+      margin-bottom: var(--sp-5);
+    }
+
+    /* Subsections */
+    .spec-block {
+      margin-bottom: var(--sp-4);
+    }
+
+    .spec-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .spec-block-title {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--fg-default);
+      margin-bottom: var(--sp-1);
+    }
+
+    .spec-block-text {
+      font-size: var(--text-sm);
+      color: var(--fg-muted);
+      line-height: var(--leading-relaxed);
+    }
+
+    /* Sequential pipeline steps */
+    .pipeline-steps {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+      margin-top: var(--sp-4);
+      margin-bottom: var(--sp-5);
+    }
+
+    .pipeline-step {
+      display: flex;
+      gap: var(--sp-4);
+      padding: var(--sp-3) var(--sp-4);
+      background: var(--surface-sunken);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+    }
+
+    .step-badge {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      background: var(--accent-default);
+      color: var(--fg-on-accent);
+      font-family: var(--font-data);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-name {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--fg-default);
+      margin-bottom: 2px;
+    }
+
+    .step-desc {
+      font-size: var(--text-xs);
+      color: var(--fg-muted);
+      line-height: var(--leading-normal);
+    }
+
+    /* Policy & SLA boxes */
+    .policy-box {
+      background: var(--surface-sunken);
+      border-left: 3px solid var(--accent-default);
+      padding: var(--sp-3) var(--sp-4);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-top: var(--sp-4);
+    }
+
+    .policy-box-title {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      color: var(--accent-default);
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .policy-box-desc {
+      font-size: var(--text-sm);
+      color: var(--fg-default);
+      line-height: var(--leading-normal);
+    }
+
+    /* Data items list */
+    .data-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-2);
+    }
+
+    .data-item {
+      display: flex;
+      align-items: baseline;
+      gap: var(--sp-2);
+      font-size: var(--text-sm);
+      color: var(--fg-muted);
+      line-height: var(--leading-normal);
+    }
+
+    .data-item-bullet {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-default);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .code-tag {
+      font-family: var(--font-data);
+      font-size: var(--text-xs);
+      background: var(--surface-sunken);
+      border: 1px solid var(--border-subtle);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+      color: var(--fg-default);
+    }
+
+    /* Roadmap checklist */
+    .roadmap-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+    }
+
+    .roadmap-item {
+      display: flex;
+      gap: var(--sp-3);
+      align-items: flex-start;
+      font-size: var(--text-sm);
+      color: var(--fg-default);
+      line-height: var(--leading-normal);
+    }
+
+    .roadmap-bullet {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-data);
+      font-size: 10px;
+      color: var(--fg-subtle);
+      margin-top: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Global Disclaimer banner -->
+  <div class="disclaimer-banner" role="status">
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5a.75.75 0 011.5 0v4a.75.75 0 01-1.5 0v-4zm.75 7a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
+    </svg>
+    Prototype — trained on synthetic data, not validated for production use
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="index.html" class="navbar__brand">
+      <svg class="navbar__logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="navbar__wordmark">AI Risk Manager</span>
+    </a>
+
+    <ul class="navbar__links">
+      <li><a href="index.html" class="navbar__link">Overview</a></li>
+      <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
+      <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
+      <li><a href="concept.html" class="navbar__link" aria-current="page">Roadmap Concepts</a></li>
+      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+    </ul>
+
+    <button class="navbar__menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z"/>
+      </svg>
+    </button>
+
+    <ul class="navbar__mobile-menu" id="mobile-menu">
+      <li><a href="index.html" class="navbar__link">Overview</a></li>
+      <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
+      <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
+      <li><a href="concept.html" class="navbar__link" aria-current="page">Roadmap Concepts</a></li>
+      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-shell">
+    <main class="page-shell__main">
+      <div class="container">
+        
+        <div class="concept-layout">
+          
+          <!-- LEFT SIDEBAR: CONCEPT SELECTOR -->
+          <aside class="concept-sidebar" aria-label="Fraud concepts selection">
+            <div class="sidebar-heading">Research Specifications</div>
+            <ul class="concept-nav-list" id="concept-nav-list">
+              <!-- Dynamically populated from FRAUD_CONCEPTS -->
+            </ul>
+
+            <div class="sidebar-footer-note">
+              <strong>Non-operational notice:</strong> All systems listed above represent research designs. None are enabled for live payment evaluation.
+            </div>
+          </aside>
+
+          <!-- RIGHT COLUMN: UNIFIED REUSABLE CONCEPT TEMPLATE -->
+          <div class="concept-main" id="concept-content-pane">
+
+            <!-- 1. MANDATORY PERSISTENT CONCEPT BANNER -->
+            <div class="concept-status-banner" role="alert" aria-live="polite">
+              <svg class="concept-status-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+              </svg>
+              <div class="concept-status-body">
+                <div class="concept-status-badge">ARCHITECTURAL CONCEPT — NOT YET IMPLEMENTED</div>
+                <div class="concept-status-title">This fraud protection system does not run in production</div>
+                <div class="concept-status-desc">
+                  This page documents a planned detection architecture under active research. It does not score live transactions, evaluate API payloads, or enforce blocking decisions. Telemetry requirements, model structures, and data flows represent the target implementation specification.
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. CONCEPT HEADER BLOCK -->
+            <header class="concept-header">
+              <span class="concept-category-tag" id="c-category">Category</span>
+              <h1 class="concept-title" id="c-title">Fraud Concept Title</h1>
+              
+              <div class="concept-meta-grid">
+                <div class="meta-box">
+                  <span class="meta-lbl">Target Metric</span>
+                  <span class="meta-val" id="c-metric">—</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-lbl">Loss Owner</span>
+                  <span class="meta-val" id="c-loss-owner">—</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-lbl">Target Latency SLA</span>
+                  <span class="meta-val" id="c-latency">—</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-lbl">Estimated Build Timeline</span>
+                  <span class="meta-val" id="c-timeline">—</span>
+                </div>
+              </div>
+            </header>
+
+            <!-- 3. FRAUD PATTERN -->
+            <section class="spec-section">
+              <h2 class="spec-section-title">1. What the Fraud Pattern Is</h2>
+              <p class="spec-lead" id="c-pattern-summary">—</p>
+
+              <div class="spec-block">
+                <h3 class="spec-block-title">Attack Mechanics</h3>
+                <p class="spec-block-text" id="c-pattern-mechanics">—</p>
+              </div>
+
+              <div class="spec-block">
+                <h3 class="spec-block-title">Financial Impact</h3>
+                <p class="spec-block-text" id="c-pattern-impact">—</p>
+              </div>
+
+              <div class="spec-block">
+                <h3 class="spec-block-title">Why Existing Rules Fail</h3>
+                <p class="spec-block-text" id="c-pattern-why-fail">—</p>
+              </div>
+            </section>
+
+            <!-- 4. DETECTOR FUNCTION -->
+            <section class="spec-section">
+              <h2 class="spec-section-title">2. How a Working Detector Would Function</h2>
+              <p class="spec-lead" id="c-detector-summary">—</p>
+
+              <div class="spec-block-title">Sequential Detection Pipeline</div>
+              <div class="pipeline-steps" id="c-pipeline-steps">
+                <!-- Injected sequentially -->
+              </div>
+
+              <div class="policy-box">
+                <div class="policy-box-title">Decision & Mitigation Policy</div>
+                <div class="policy-box-desc" id="c-decision-policy">—</div>
+              </div>
+            </section>
+
+            <!-- 5. REQUIRED DATA & TELEMETRY -->
+            <section class="spec-section">
+              <h2 class="spec-section-title">3. What Data It Would Need</h2>
+              
+              <div class="spec-block">
+                <h3 class="spec-block-title">Ingested Data Streams & Telemetry</h3>
+                <ul class="data-list" id="c-data-streams"></ul>
+              </div>
+
+              <div class="spec-block" style="margin-top: var(--sp-4);">
+                <h3 class="spec-block-title">Feature Store Entities (Redis / Feast)</h3>
+                <ul class="data-list" id="c-feature-entities"></ul>
+              </div>
+
+              <div class="spec-block" style="margin-top: var(--sp-4);">
+                <h3 class="spec-block-title">External Integrations & APIs Required</h3>
+                <ul class="data-list" id="c-integrations"></ul>
+              </div>
+            </section>
+
+            <!-- 6. WHY NOT IMPLEMENTED & ROADMAP -->
+            <section class="spec-section">
+              <h2 class="spec-section-title">4. Why Not Implemented & Path to Production</h2>
+              
+              <div class="spec-block">
+                <h3 class="spec-block-title">Engineering Rationale for MVP Deferral</h3>
+                <p class="spec-block-text" id="c-why-unimplemented">—</p>
+              </div>
+
+              <div class="spec-block" style="margin-top: var(--sp-4);">
+                <h3 class="spec-block-title">Implementation Roadmap to Unblock</h3>
+                <ul class="roadmap-list" id="c-roadmap-list"></ul>
+              </div>
+            </section>
+
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p><strong>AI Risk Manager</strong> &mdash; Built by Team Suyansh Khanna for <strong>Razorpay Buildathon 2026</strong>. <a href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub Repository</a>. Prototype trained on synthetic data &mdash; not for production use.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="concept_data.js"></script>
+  <script src="concept.js"></script>
+</body>
+</html>

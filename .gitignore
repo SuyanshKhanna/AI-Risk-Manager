@@ -149,6 +149,7 @@ kubeconfig
 bandit-report.json
 safety-report.json
 *.html
+!frontend/**/*.html
 
 # Docker
 .docker/

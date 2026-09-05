@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI Risk Manager — Real-time UPI fraud detection for merchants">
+  <title>AI Risk Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' rx='4' fill='%231e2a4a'/><path d='M10 16l4 4 8-8' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <style>
+    /* Hero layout */
+    #ambient-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    .hero-section {
+      position: relative;
+      z-index: 10;
+      min-height: calc(100vh - var(--disclaimer-height) - var(--nav-height) - 100px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--sp-8) 0;
+    }
+
+    .hero-headline {
+      font-size: clamp(var(--text-2xl), 6vw, 3.5rem);
+      line-height: var(--leading-tight);
+      letter-spacing: -0.03em;
+      margin-bottom: var(--sp-6);
+      max-width: 900px;
+    }
+
+    .hero-description {
+      font-size: var(--text-lg);
+      color: var(--fg-muted);
+      margin-bottom: var(--sp-10);
+      max-width: 680px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: var(--sp-4);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .hero-actions .btn {
+      height: 44px; /* Slightly taller for hero CTA */
+      padding: 0 var(--sp-6);
+      font-size: var(--text-base);
+    }
+  </style>
+</head>
+<body>
+  <!-- Disclaimer banner -->
+  <div class="disclaimer-banner" role="status">
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5a.75.75 0 011.5 0v4a.75.75 0 01-1.5 0v-4zm.75 7a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
+    </svg>
+    Prototype — trained on synthetic data, not validated for production use
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="index.html" class="navbar__brand">
+      <svg class="navbar__logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="3" y="3" width="26" height="26" rx="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M10 16l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="navbar__wordmark">AI Risk Manager</span>
+    </a>
+
+    <ul class="navbar__links">
+      <li><a href="index.html" class="navbar__link" aria-current="page">Overview</a></li>
+      <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
+      <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
+      <li><a href="concept.html" class="navbar__link">Roadmap Concepts</a></li>
+      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+    </ul>
+
+    <button class="navbar__menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z"/>
+      </svg>
+    </button>
+
+    <ul class="navbar__mobile-menu" id="mobile-menu">
+      <li><a href="index.html" class="navbar__link" aria-current="page">Overview</a></li>
+      <li><a href="predictor.html" class="navbar__link">Live Predictor</a></li>
+      <li><a href="dashboard.html" class="navbar__link">Metrics Dashboard</a></li>
+      <li><a href="concept.html" class="navbar__link">Roadmap Concepts</a></li>
+      <li><a href="design-system.html" class="navbar__link">Design System</a></li>
+    </ul>
+  </nav>
+
+  <!-- Ambient Particle Canvas -->
+  <canvas id="ambient-canvas"></canvas>
+
+  <div class="page-shell">
+    <main class="page-shell__main">
+      <div class="container hero-section">
+        <h1 class="hero-headline">UPI fraud detection for merchants. Built for Razorpay Buildathon 2026.</h1>
+        <p class="hero-description">
+          Identify and block malicious patterns like velocity bursts, device emulation, and fake payment screenshots in under 100 milliseconds.
+        </p>
+        <div class="hero-actions">
+          <a href="predictor.html" class="btn btn--primary">Try the live detector</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p><strong>AI Risk Manager</strong> &mdash; Built by Team Suyansh Khanna for <strong>Razorpay Buildathon 2026</strong>. <a href="https://github.com/SuyanshKhanna/AI-Risk-Manager" target="_blank" rel="noopener noreferrer">GitHub Repository</a>. Prototype trained on synthetic data &mdash; not for production use.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="particles.js"></script>
+</body>
+</html>
